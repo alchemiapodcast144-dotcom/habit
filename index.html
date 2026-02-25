@@ -1,0 +1,79 @@
+# Fix: jajko/smok podąża podczas scrolla listy zadań (mobile)
+
+Wklej poniższe fragmenty do swojego pliku HTML.
+
+## 1) CSS (zamień obecne reguły `.petCard.docked` i `.pillrow.dockedStats`)
+
+```css
+/* Mascot + stats sticky while browsing tasks on mobile */
+.pillrow.dockedStats,
+.petCard.docked {
+  position: sticky;
+  z-index: 40;
+  background: rgba(8,10,12,.72);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.pillrow.dockedStats {
+  top: calc(env(safe-area-inset-top, 0px) + 8px);
+  margin: 0;
+  padding: 10px 12px 6px;
+  border-bottom: 1px solid rgba(242,237,227,.08);
+}
+
+.petCard.docked {
+  top: calc(env(safe-area-inset-top, 0px) + 86px);
+  margin: 0 12px 8px;
+  border-radius: 16px;
+}
+
+@media (max-width: 720px) {
+  .gridframe {
+    overflow: visible; /* sticky element nie może być "ucięty" */
+  }
+
+  .controls {
+    position: static; /* nie koliduje z docked stats + pet */
+  }
+}
+```
+
+## 2) JS (`placePet`) – podmień całą funkcję
+
+```js
+function placePet(){
+  if(!petCard || !gridframe || !controlsEl || !rightTop) return;
+  const isMobile = window.matchMedia("(max-width: 720px)").matches;
+
+  if(isMobile){
+    petCard.classList.add("docked");
+    if(statsRow) statsRow.classList.add("dockedStats");
+
+    const mobileViewEl = document.getElementById("mobileView");
+
+    if(statsRow && statsRow.parentElement !== gridframe){
+      gridframe.insertBefore(statsRow, controlsEl);
+    }
+
+    if(petCard.parentElement !== gridframe){
+      if(mobileViewEl) {
+        gridframe.insertBefore(petCard, mobileViewEl);
+      } else {
+        gridframe.insertBefore(petCard, controlsEl.nextSibling);
+      }
+    }
+  } else {
+    petCard.classList.remove("docked");
+    if(statsRow) statsRow.classList.remove("dockedStats");
+
+    if(statsRow) rightTop.appendChild(statsRow);
+    rightTop.appendChild(petCard);
+  }
+}
+```
+
+Dlaczego to działa:
+- `position: sticky` jest realnie przypięte do viewportu na mobile,
+- elementy są przeniesione **nad** listę zadań,
+- `gridframe { overflow: visible; }` usuwa najczęstszy problem "sticky nie działa".
