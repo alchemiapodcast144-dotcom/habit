@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Habit Tracker</title>
+    <link rel="stylesheet" href="./styles.css" />
+    <script src="./app.js" defer></script>
+  </head>
+  <body>
+    <main class="app">
+      <header class="panel controls">
+        <h1>Filtry i kontrolki</h1>
+        <div class="toolbar">
+          <input id="search" type="search" placeholder="Szukaj zadania" />
+          <select id="statusFilter" aria-label="Filtr statusu">
+            <option value="all">Wszystkie</option>
+            <option value="open">Do zrobienia</option>
+            <option value="done">Zrobione</option>
+          </select>
+        </div>
+        <form id="taskForm" class="add-task">
+          <input id="taskInput" type="text" placeholder="Dodaj nowe zadanie" required />
+          <button type="submit">Dodaj</button>
+        </form>
+      </header>
+
+      <section>
+        <ul id="taskList" class="task-list" aria-live="polite"></ul>
+      </section>
+    </main>
+
+    <template id="taskItemTemplate">
+      <li class="panel task-item">
+        <label>
+          <input class="toggle" type="checkbox" />
+          <span class="title"></span>
+        </label>
+        <button class="delete" type="button" aria-label="Usuń zadanie">Usuń</button>
+      </li>
+    </template>
+  </body>
+</html>
