@@ -1,43 +1,2592 @@
 <!doctype html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Habit Tracker</title>
-    <link rel="stylesheet" href="./styles.css" />
-    <script src="./app.js" defer></script>
-  </head>
-  <body>
-    <main class="app">
-      <header class="panel controls">
-        <h1>Filtry i kontrolki</h1>
-        <div class="toolbar">
-          <input id="search" type="search" placeholder="Szukaj zadania" />
-          <select id="statusFilter" aria-label="Filtr statusu">
-            <option value="all">Wszystkie</option>
-            <option value="open">Do zrobienia</option>
-            <option value="done">Zrobione</option>
-          </select>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#07090b" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Habit Tracker" />
+<title>Habit Tracer by Community 5.5%</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+<style>
+    :root{
+      --bg:#0b1220;
+      --card:#0f1a2f;
+      --text:#e8eefc;
+      --muted:#a9b7d9;
+      --line:rgba(232,238,252,.14);
+      --line2:rgba(232,238,252,.10);
+      --accent:#7aa2ff;
+      --good:#57f2b8;
+      --bad:#ff6b6b;
+      --gold:#f7d06a;
+      --shadow: 0 14px 40px rgba(0,0,0,.35);
+      --radius: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--sans);
+      background: radial-gradient(1200px 800px at 20% -10%, rgba(122,162,255,.25), transparent 55%),
+                  radial-gradient(900px 700px at 85% 10%, rgba(247,208,106,.18), transparent 55%),
+                  radial-gradient(1100px 800px at 40% 110%, rgba(87,242,184,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1260px;
+      margin:0 auto;
+      padding:22px 16px 40px;
+    }
+
+    .topbar{
+      display:flex;
+      gap:14px;
+      align-items:flex-end;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      margin-bottom:14px;
+    }
+    .title{
+      display:flex;
+      flex-direction:column;
+      gap:6px;
+      min-width:280px;
+    }
+    h1{
+      margin:0;
+      font-size:22px;
+      letter-spacing:.5px;    }
+    .sub{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.2;
+    }
+
+    .rightTop{
+      display:flex;
+      gap:12px;
+      flex-wrap:wrap;
+      align-items:stretch;
+      justify-content:flex-end;
+    }
+
+    .pillrow{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-end;
+      align-content:flex-end;
+    }
+    .pill{
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      border-radius:999px;
+      padding:10px 12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      box-shadow: 0 8px 20px rgba(0,0,0,.18);
+      backdrop-filter: blur(8px);
+      height:40px;
+    }
+    .pill b{font-family:var(--mono); font-size:13px}
+    .pill span{color:var(--muted); font-size:12px}
+    .progress{
+      width:180px;
+      height:10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.08);
+      overflow:hidden;
+      border:1px solid var(--line);
+    }
+    .bar{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(122,162,255,.95), rgba(87,242,184,.95));
+      border-radius:999px;
+      transition:width .25s ease;
+    }
+
+    /* Mascot Card */
+    .petCard{
+      background:rgba(255,255,255,.05);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow: 0 10px 26px rgba(0,0,0,.28);
+      padding:10px 12px;
+      display:flex;
+      gap:12px;
+      align-items:center;
+      min-width:280px;
+      backdrop-filter: blur(10px);
+      position:relative;
+      overflow:hidden;
+    }
+    .petGlow{
+      position:absolute;
+      inset:-60px -60px auto auto;
+      width:200px;
+      height:200px;
+      background: radial-gradient(circle at 30% 30%, rgba(247,208,106,.22), transparent 55%);
+      pointer-events:none;
+      filter: blur(2px);
+    }
+    .petSvgWrap{
+      width:78px;
+      height:78px;
+      display:grid;
+      place-items:center;
+      border-radius:16px;
+      background:rgba(0,0,0,.12);
+      border:1px solid rgba(232,238,252,.12);
+      position:relative;
+      overflow:hidden;
+    }
+    .petMeta{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+      min-width:170px;
+    }
+    .petName{      font-size:13px;
+      letter-spacing:.2px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .petStage{
+      color:var(--muted);
+      font-size:12px;
+    }
+    .petLine{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      flex-wrap:wrap;
+      font-family:var(--mono);
+      font-size:12px;
+      color:rgba(232,238,252,.9);
+    }
+    .petBadge{
+      padding:3px 8px;
+      border-radius:999px;
+      border:1px solid rgba(232,238,252,.16);
+      background:rgba(255,255,255,.04);
+    }
+
+    /* Level-up animation */
+    .petCard.lvlup .petSvgWrap{
+      animation: shake .45s ease;
+    }
+    @keyframes shake{
+      0%{transform:translateX(0)}
+      18%{transform:translateX(-3px) rotate(-1deg)}
+      36%{transform:translateX(3px) rotate(1deg)}
+      54%{transform:translateX(-2px) rotate(-1deg)}
+      72%{transform:translateX(2px) rotate(1deg)}
+      100%{transform:translateX(0)}
+    }
+    .spark{
+      position:absolute;
+      width:4px;
+      height:4px;
+      border-radius:999px;
+      background:rgba(247,208,106,.95);
+      box-shadow:0 0 20px rgba(247,208,106,.45);
+      animation: spark 700ms ease forwards;
+      pointer-events:none;
+    }
+    @keyframes spark{
+      from{opacity:0; transform: translate(0,0) scale(.7)}
+      20%{opacity:1}
+      to{opacity:0; transform: translate(var(--dx), var(--dy)) scale(1.1)}
+    }
+
+    /* Frame */
+    .gridframe{
+      background:rgba(255,255,255,.035);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+
+    .controls{
+      padding:14px;
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+      border-bottom:1px solid var(--line);
+    }
+    .controls .left, .controls .right{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    input[type="text"], button{
+      font-family:inherit;
+      color:var(--text);
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+      border-radius:12px;
+      padding:10px 12px;
+      outline:none;
+    }
+    input[type="text"]{min-width:260px}
+    button{
+      cursor:pointer;
+      transition: transform .05s ease, background .2s ease;
+      user-select:none;
+    }
+    button:hover{background:rgba(255,255,255,.09)}
+    button:active{transform: translateY(1px)}
+    .btnAccent{border-color:rgba(122,162,255,.45)}
+    .btnDanger{border-color:rgba(255,107,107,.45)}
+    .btnGhost{
+      background:transparent;
+      border:1px dashed var(--line);
+    }
+    .hint{
+      color:var(--muted);
+      font-size:12px;
+      margin-left:2px;
+    }
+
+    /* Custom Month Picker (fixes unreadable native dropdown) */
+    .monthPick{position:relative; display:inline-block}
+    .monthBtn{
+      display:flex;
+      gap:10px;
+      align-items:center;
+      min-width:210px;
+      justify-content:space-between;
+    }
+    .caret{opacity:.85}
+    .monthMenu{
+      position:absolute;
+      top:calc(100% + 8px);
+      left:0;
+      width:260px;
+      max-height:320px;
+      overflow:auto;
+      border-radius:14px;
+      background:rgba(15,26,47,.98);
+      border:1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding:6px;
+      z-index:50;
+    }
+    .monthMenu.hidden{display:none}
+    .monthItem{
+      padding:10px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:center;
+      color:rgba(232,238,252,.92);
+      border:1px solid transparent;
+    }
+    .monthItem:hover{background:rgba(255,255,255,.06); border-color:rgba(232,238,252,.12)}
+    .monthItem.active{background:rgba(122,162,255,.14); border-color:rgba(122,162,255,.30)}
+    .monthItem small{color:var(--muted); font-family:var(--mono)}
+    .monthDivider{
+      height:1px;
+      background:rgba(232,238,252,.08);
+      margin:6px 6px;
+    }
+
+    /* Table */
+    .tablewrap{overflow:auto;}
+    table{
+      border-collapse:separate;
+      border-spacing:0;
+      width:max-content;
+      min-width:100%;
+      background:rgba(0,0,0,.10);
+    }
+    thead th{
+      position:sticky;
+      top:0;
+      background:rgba(15,26,47,.98);
+      z-index:2;
+      border-bottom:1px solid var(--line);
+      padding:10px 8px;
+      font-size:12px;
+      color:var(--muted);
+      text-align:center;
+      white-space:nowrap;
+    }
+    thead th:first-child{
+      left:0;
+      z-index:3;
+      text-align:left;
+    }
+    tbody th{
+      position:sticky;
+      left:0;
+      z-index:1;
+      background:rgba(15,26,47,.92);
+      border-right:1px solid var(--line);
+      padding:10px 10px;
+      min-width:260px;
+      max-width:360px;
+      text-align:left;
+      font-size:13px;
+      font-weight:700;
+    }
+    tbody tr:nth-child(odd) th{background:rgba(15,26,47,.86)}
+    tbody td{
+      width:32px;
+      height:32px;
+      border-right:1px dotted var(--line2);
+      border-bottom:1px dotted var(--line2);
+      text-align:center;
+      padding:0;
+      background:rgba(255,255,255,.01);
+    }
+    tbody tr:nth-child(odd) td{background:rgba(255,255,255,.015)}
+    .cellBtn{
+      width:100%;
+      height:100%;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-size:14px;
+      position:relative;
+    }
+    .dot{
+      width:18px;
+      height:18px;
+      border-radius:999px;
+      border:1px solid rgba(232,238,252,.22);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      color:rgba(232,238,252,.0);
+      transition: transform .08s ease, border-color .2s ease, background .2s ease, color .2s ease;
+    }
+    .done .dot{
+      background:rgba(87,242,184,.18);
+      border-color:rgba(87,242,184,.65);
+      color:rgba(87,242,184,.95);
+      transform: scale(1.02);
+      text-shadow:0 0 12px rgba(87,242,184,.35);
+    }
+
+    .taskActions{
+      display:flex;
+      gap:8px;
+      align-items:center;
+      justify-content:flex-end;
+      margin-top:6px;
+    }
+    .miniBtn{
+      padding:6px 10px;
+      border-radius:10px;
+      font-size:12px;
+      background:rgba(255,255,255,.05);
+    }
+    .rowTop{
+      display:flex;
+      gap:8px;
+      align-items:flex-start;
+      justify-content:space-between;
+    }
+    .taskName{
+      line-height:1.2;
+      word-break:break-word;
+      padding-right:8px;
+    }
+
+    /* Toast */
+    .toast{
+      position:fixed;
+      right:14px;
+      bottom:14px;
+      background:rgba(15,26,47,.96);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:12px 14px;
+      box-shadow: var(--shadow);
+      color:var(--text);
+      font-size:13px;
+      opacity:0;
+      transform: translateY(10px);
+      transition: opacity .18s ease, transform .18s ease;
+      pointer-events:none;
+      z-index:999;
+    }
+    .toast.show{
+      opacity:1;
+      transform: translateY(0);
+    }
+
+    /* Floating +10 */
+    .floatXP{
+      position:absolute;
+      font-family:var(--mono);
+      font-size:12px;
+      color:var(--gold);
+      text-shadow:0 8px 18px rgba(0,0,0,.45);
+      pointer-events:none;
+      animation: floatUp .8s ease forwards;
+      z-index:10;
+    }
+    @keyframes floatUp{
+      from{opacity:0; transform: translateY(6px) scale(.98)}
+      20%{opacity:1}
+      to{opacity:0; transform: translateY(-14px) scale(1.02)}
+    }
+
+    .footer{
+      margin-top:12px;
+      color:var(--muted);
+      font-size:12px;
+      display:flex;
+      justify-content:space-between;
+      flex-wrap:wrap;
+      gap:10px;
+      opacity:.95;
+    }
+    .kbd{font-family:var(--mono); padding:2px 6px; border:1px solid var(--line); border-radius:8px; background:rgba(255,255,255,.04)}
+
+    /* Mascot SVG tweaks */
+    .petSvg{width:74px;height:74px}
+    .petSvg[data-hue]{filter: hue-rotate(var(--hue)) saturate(1.05);}
+    .crack{
+      stroke: rgba(232,238,252,.82);
+      stroke-width:2.2;
+      stroke-linecap:round;
+      stroke-linejoin:round;
+      fill:none;
+      opacity:0;
+      stroke-dasharray: 80;
+      stroke-dashoffset: 80;
+      transition: opacity .25s ease;
+    }
+    .showCrack{opacity:.9; animation: crackDraw .55s ease forwards;}
+    @keyframes crackDraw{to{stroke-dashoffset:0}}
+    .eggTop{transform-origin: 37px 26px; transition: transform .35s ease, opacity .3s ease}
+    .eggBottom{transform-origin: 37px 46px; transition: transform .35s ease, opacity .3s ease}
+    .open .eggTop{transform: translateY(-6px) rotate(-10deg)}
+    .open .eggBottom{transform: translateY(4px) rotate(6deg)}
+    .hidden{opacity:0}
+.footer .cta{
+      margin-top:8px;
+      font-size:14px;
+      color:rgba(232,238,252,.92);
+    }
+    .footer .cta a{
+      color: var(--gold);
+      text-decoration:none;
+    }
+    .footer .cta a:hover{ text-decoration: underline; }
+
+  
+    /* --- Mobile layout fixes --- */
+    @media (max-width: 720px){
+      .wrap{padding:16px 12px 26px}
+      .topbar{flex-direction:column; align-items:stretch}
+      .rightTop{width:100%; justify-content:flex-start}
+      .pillrow{justify-content:flex-start}
+      .pill{height:auto; padding:9px 11px}
+      .progress{width:140px}
+      .petCard{width:100%; min-width:0}
+      .petMeta{min-width:0}
+      .controls{flex-direction:column; align-items:stretch; gap:12px}
+      .controls .left, .controls .right{width:100%; justify-content:flex-start}
+      .monthPick{width:100%}
+      .monthBtn{width:100%; min-width:0}
+      input[type="text"]{width:100%; min-width:0}
+      #addBtn{width:100%}
+      .controls .right{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+      #resetMonthBtn{grid-column: 1 / -1}
+      /* Table: on mobile disable sticky first column (it was covering day columns) */
+      tbody th{position:static; left:auto; min-width:0; max-width:none; width:auto; border-right:1px solid var(--line)}
+      thead th:first-child{position:static; left:auto}
+      /* Make row header content stack nicer */
+      .rowTop{flex-direction:column; align-items:flex-start}
+      .taskActions{justify-content:flex-start}
+      /* Slightly smaller cells */
+      tbody td{width:30px; height:30px}
+      .dot{width:17px; height:17px}
+      /* Footer */
+      .footer{flex-direction:column; align-items:flex-start}
+    }
+
+  
+    /* Mascot docked above tasks on mobile */
+    .petCard.docked{
+      margin:14px;
+    }
+    .petCard.docked{
+      border-radius:16px;
+    }
+    @media (max-width: 720px){
+      .petCard.docked{
+        margin:12px;
+      }
+    }
+
+  
+    /* Stats docked above egg on mobile */
+    .pillrow.dockedStats{
+      margin:12px 14px 0;
+      padding:0;
+    }
+    @media (max-width: 720px){
+      .pillrow.dockedStats{ margin:12px 12px 0; }
+      .pillrow.dockedStats .pill{ width:100%; justify-content:space-between; }
+      .pillrow.dockedStats .progress{ width:52vw; max-width:220px; min-width:140px; }
+    }
+
+  
+    /* --- App-like mobile UX (daily view + sheets) --- */
+    body.noScroll{overflow:hidden}
+
+    .iconBtn{
+      width:40px;
+      height:40px;
+      border-radius:12px;
+      display:inline-grid;
+      place-items:center;
+      padding:0;
+      line-height:1;
+      font-size:18px;
+    }
+
+    #openSettingsBtn{display:none}
+
+    /* Mobile daily view (replaces table grid) */
+    .mobileView{display:none}
+    .dayStrip{
+      display:flex;
+      gap:10px;
+      align-items:stretch;
+      padding:12px 14px 8px;
+      border-top:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,.02), rgba(255,255,255,0));
+    }
+    .dayNav{
+      width:44px;
+      height:44px;
+      border-radius:14px;
+      font-size:22px;
+      background:rgba(255,255,255,.06);
+      border:1px solid var(--line);
+    }
+    .dayCenter{flex:1; min-width:0}
+    .dayLabel{
+      font-weight:800;
+      letter-spacing:.2px;
+      font-size:13px;
+      color:rgba(232,238,252,.95);
+      margin-bottom:8px;
+      text-transform:capitalize;
+    }
+    .dayChips{
+      display:flex;
+      gap:8px;
+      overflow:auto;
+      padding-bottom:6px;
+      scroll-snap-type:x mandatory;
+      -webkit-overflow-scrolling: touch;
+    }
+    .dayChips::-webkit-scrollbar{height:0}
+    .dayChip{
+      scroll-snap-align:center;
+      min-width:38px;
+      height:38px;
+      border-radius:13px;
+      border:1px solid rgba(232,238,252,.14);
+      background:rgba(255,255,255,.04);
+      display:inline-grid;
+      place-items:center;
+      font-family:var(--mono);
+      font-size:13px;
+      color:rgba(232,238,252,.92);
+    }
+    .dayChip.weekend{opacity:.92}
+    .dayChip.today{border-color:rgba(247,208,106,.45)}
+    .dayChip.active{
+      background:rgba(122,162,255,.18);
+      border-color:rgba(122,162,255,.45);
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+      transform: translateY(-1px);
+    }
+
+    .daySummary{
+      padding:0 14px 10px;
+      color:var(--muted);
+      font-size:12px;
+    }
+
+    .mobileTasks{
+      padding:0 14px 14px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .taskCard{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,.04);
+      border-radius:18px;
+      padding:12px 12px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      box-shadow: 0 10px 22px rgba(0,0,0,.22);
+      backdrop-filter: blur(10px);
+    }
+    .taskMeta{flex:1; min-width:0}
+    .taskTitleM{
+      font-size:14px;
+      font-weight:800;
+      line-height:1.25;
+      letter-spacing:.2px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+    }
+    .taskSubM{
+      margin-top:4px;
+      font-size:12px;
+      color:var(--muted);
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      align-items:center;
+    }
+    .taskTools{
+      display:flex;
+      gap:8px;
+      align-items:center;
+    }
+    .miniIcon{
+      width:40px;
+      height:40px;
+      border-radius:14px;
+      border:1px solid rgba(232,238,252,.12);
+      background:rgba(0,0,0,.10);
+      padding:0;
+      display:inline-grid;
+      place-items:center;
+      font-size:14px;
+    }
+
+    .switchBtn{
+      width:56px;
+      height:40px;
+      border-radius:999px;
+      border:1px solid rgba(232,238,252,.18);
+      background:rgba(255,255,255,.05);
+      padding:4px;
+      display:flex;
+      align-items:center;
+      justify-content:flex-start;
+      position:relative;
+    }
+    .switchKnob{
+      width:32px;
+      height:32px;
+      border-radius:999px;
+      background:rgba(232,238,252,.86);
+      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      transform: translateX(0);
+      transition: transform .18s ease, background .18s ease;
+    }
+    .taskCard.done{
+      border-color:rgba(87,242,184,.30);
+      background:rgba(87,242,184,.06);
+    }
+    .taskCard.done .switchBtn{
+      background:rgba(87,242,184,.18);
+      border-color:rgba(87,242,184,.45);
+      justify-content:flex-end;
+    }
+    .taskCard.done .switchKnob{
+      background:rgba(87,242,184,.95);
+    }
+
+    .emptyState{
+      padding:18px 14px;
+      border:1px dashed rgba(232,238,252,.20);
+      border-radius:18px;
+      color:rgba(232,238,252,.85);
+      background:rgba(0,0,0,.10);
+      text-align:center;
+      font-size:13px;
+    }
+
+    /* FAB + sheets */
+    .fab{
+      position:fixed;
+      right:16px;
+      bottom:calc(16px + env(safe-area-inset-bottom, 0px));
+      width:56px;
+      height:56px;
+      border-radius:18px;
+      border:1px solid rgba(122,162,255,.45);
+      background: linear-gradient(180deg, rgba(122,162,255,.22), rgba(87,242,184,.14));
+      box-shadow: 0 16px 40px rgba(0,0,0,.42);
+      font-size:30px;
+      display:none;
+      z-index:220;
+    }
+
+    .sheet{
+      position:fixed;
+      inset:0;
+      z-index:300;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+    }
+    .sheet.hidden{display:none}
+    .sheetBackdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(0,0,0,.55);
+      backdrop-filter: blur(2px);
+    }
+    .sheetPanel{
+      position:relative;
+      width:100%;
+      max-width:720px;
+      background:rgba(15,26,47,.98);
+      border:1px solid var(--line);
+      border-bottom:0;
+      border-top-left-radius:22px;
+      border-top-right-radius:22px;
+      box-shadow: 0 -18px 46px rgba(0,0,0,.55);
+      overflow:hidden;
+      padding-bottom:calc(12px + env(safe-area-inset-bottom, 0px));
+    }
+    .sheetHeader{
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-bottom:1px solid rgba(232,238,252,.10);
+      background: linear-gradient(180deg, rgba(255,255,255,.04), rgba(255,255,255,.01));
+    }
+    .sheetTitle{font-weight:900; letter-spacing:.2px}
+    .sheetBody{
+      padding:12px 14px 16px;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+    }
+    .fieldLabel{font-size:12px; color:var(--muted)}
+    .settingsHint{
+      font-size:12px;
+      color:rgba(232,238,252,.86);
+      background:rgba(247,208,106,.08);
+      border:1px solid rgba(247,208,106,.18);
+      border-radius:14px;
+      padding:10px 10px;
+      margin-bottom:8px;
+    }
+    .settingsBlock > *{width:100%}
+
+    @media (max-width: 720px){
+      /* make it feel like an app */
+      .wrap{padding:12px 12px 92px} /* space for FAB */
+      .topbar{gap:10px}
+      h1{font-size:18px}
+      .sub{
+        font-size:12px;
+        display:-webkit-box;
+        -webkit-line-clamp:2;
+        -webkit-box-orient:vertical;
+        overflow:hidden;
+      }
+
+      .controls{
+        position:sticky;
+        top:0;
+        z-index:25;
+        border-bottom:1px solid var(--line);
+      }
+      .controls .left{
+        display:flex;
+        flex-wrap:nowrap;
+        align-items:center;
+        gap:10px;
+      }
+      .controls .left .hint{display:none}
+      /* keep month picker + settings, hide desktop add controls */
+      #openSettingsBtn{display:inline-grid; place-items:center}
+      #taskInput, #addBtn{display:none}
+      .controls .right{display:none} /* moved to settings sheet */
+      [data-mobile-hint="1"]{display:none} /* no more horizontal-table hint */
+
+      .mobileView{display:block}
+      .tablewrap{display:none}
+      .fab{display:inline-grid; place-items:center}
+    }
+
+  
+
+/* ============ VISUAL THEME: "Misty Glass / Mountain" (v1) ============ */
+:root{
+  --bg:#07090b;
+  --card:rgba(10,12,14,.36);
+  --text:#f2ede3;
+  --muted:rgba(242,237,227,.62);
+  --line:rgba(242,237,227,.12);
+  --line2:rgba(242,237,227,.08);
+  --accent:#d8b07a;
+  --gold:#d8b07a;
+  --good:#6cf0c0;
+  --bad:#ff6b6b;
+  --shadow: 0 22px 80px rgba(0,0,0,.58);
+  --radius: 26px;
+  --mistyBg: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5MDAiIGhlaWdodD0iMTYwMCIgdmlld0JveD0iMCAwIDkwMCAxNjAwIj4KPGRlZnM+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJza3kiIHgxPSIwIiB5MT0iMCIgeDI9IjAiIHkyPSIxIj4KICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzFhMWYyMyIvPgogICAgPHN0b3Agb2Zmc2V0PSIwLjU1IiBzdG9wLWNvbG9yPSIjMGYxMjE1Ii8+CiAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwNTA2MDciLz4KICA8L2xpbmVhckdyYWRpZW50PgogIDxsaW5lYXJHcmFkaWVudCBpZD0ibTEiIHgxPSIwIiB5MT0iMCIgeDI9IjEiIHkyPSIxIj4KICAgIDxzdG9wIG9mZnNldD0iMCIgc3RvcC1jb2xvcj0iIzJiMzQzYSIgc3RvcC1vcGFjaXR5PSIwLjg1Ii8+CiAgICA8c3RvcCBvZmZzZXQ9IjEiIHN0b3AtY29sb3I9IiMwYjBkMGYiIHN0b3Atb3BhY2l0eT0iMC44NSIvPgogIDwvbGluZWFyR3JhZGllbnQ+CiAgPGxpbmVhckdyYWRpZW50IGlkPSJtMiIgeDE9IjAiIHkxPSIwIiB4Mj0iMSIgeTI9IjEiPgogICAgPHN0b3Agb2Zmc2V0PSIwIiBzdG9wLWNvbG9yPSIjMWYyNjJiIiBzdG9wLW9wYWNpdHk9IjAuOSIvPgogICAgPHN0b3Agb2Zmc2V0PSIxIiBzdG9wLWNvbG9yPSIjMDcwOTBiIiBzdG9wLW9wYWNpdHk9IjAuOTUiLz4KICA8L2xpbmVhckdyYWRpZW50PgogIDxmaWx0ZXIgaWQ9ImZvZyIgeD0iLTIwJSIgeT0iLTIwJSIgd2lkdGg9IjE0MCUiIGhlaWdodD0iMTQwJSI+CiAgICA8ZmVHYXVzc2lhbkJsdXIgc3RkRGV2aWF0aW9uPSIyMiIvPgogIDwvZmlsdGVyPgo8L2RlZnM+Cgo8cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjE2MDAiIGZpbGw9InVybCgjc2t5KSIvPgoKPCEtLSBkaXN0YW50IG1vdW50YWlucyAtLT4KPHBhdGggZD0iTS00MCA1MjAgTDIxMCAzNjAgTDM2MCA0NDAgTDUyMCAzMDAgTDcyMCA0MzAgTDk0MCAzNDAgTDk2MCA2MjAgTC02MCA2MjAgWiIgZmlsbD0idXJsKCNtMSkiIG9wYWNpdHk9IjAuNzUiLz4KPHBhdGggZD0iTS02MCA2NTAgTDE4MCA0NzAgTDM2MCA1ODAgTDUyMCA0MjAgTDc0MCA2MTAgTDk4MCA0NzAgTDEwMDAgNzgwIEwtODAgNzgwIFoiIGZpbGw9InVybCgjbTIpIiBvcGFjaXR5PSIwLjgyIi8+Cgo8IS0tIGZvZyBsYXllcnMgLS0+CjxnIGZpbHRlcj0idXJsKCNmb2cpIj4KICA8ZWxsaXBzZSBjeD0iMjEwIiBjeT0iNTIwIiByeD0iMzIwIiByeT0iMTEwIiBmaWxsPSIjZmZmZmZmIiBvcGFjaXR5PSIwLjEwIi8+CiAgPGVsbGlwc2UgY3g9IjU2MCIgY3k9IjQ3MCIgcng9IjM4MCIgcnk9IjEyMCIgZmlsbD0iI2ZmZmZmZiIgb3BhY2l0eT0iMC4wOCIvPgogIDxlbGxpcHNlIGN4PSI0NjAiIGN5PSI2MzAiIHJ4PSI1MjAiIHJ5PSIxNTAiIGZpbGw9IiNmZmZmZmYiIG9wYWNpdHk9IjAuMDgiLz4KPC9nPgoKPCEtLSBmb3JlZ3JvdW5kIHZpZ25ldHRlIC0tPgo8cmVjdCB3aWR0aD0iOTAwIiBoZWlnaHQ9IjE2MDAiIGZpbGw9IiMwMDAiIG9wYWNpdHk9IjAuMTgiLz4KPC9zdmc+");
+}
+
+body{
+  background: var(--bg);
+  color: var(--text);
+}
+
+body::before{
+  content:"";
+  position:fixed;
+  inset:-60px;
+  background-image:
+    radial-gradient(1200px 900px at 20% 8%, rgba(216,176,122,.15), transparent 62%),
+    radial-gradient(900px 700px at 76% 18%, rgba(108,240,192,.10), transparent 60%),
+    linear-gradient(180deg, rgba(0,0,0,.10), rgba(0,0,0,.78)),
+    var(--mistyBg);
+  background-size: cover;
+  background-position:center top;
+  filter: saturate(1.05) contrast(1.05);
+  z-index:-3;
+}
+
+body::after{
+  content:"";
+  position:fixed;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(600px 420px at 50% 0%, rgba(255,255,255,.06), transparent 60%),
+    radial-gradient(700px 520px at 50% 25%, rgba(255,255,255,.04), transparent 62%),
+    linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.70));
+  z-index:-2;
+}
+
+@supports ((backdrop-filter: blur(16px)) or (-webkit-backdrop-filter: blur(16px))){
+  .gridframe, .petCard, .pill, .taskCard, .sheetPanel, .monthMenu, .toast{
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+}
+
+.wrap{
+  max-width: 460px;
+  margin: 18px auto 28px;
+  padding: 18px 14px 120px;
+  border-radius: 38px;
+  border:1px solid rgba(242,237,227,.12);
+  background: rgba(8,10,12,.34);
+  box-shadow: 0 70px 140px rgba(0,0,0,.55);
+  overflow:hidden;
+  position:relative;
+}
+
+@media (max-width: 720px){
+  .wrap{
+    margin:0;
+    max-width: 100%;
+    min-height:100vh;
+    border-radius: 0;
+    border:0;
+    background: transparent;
+    box-shadow:none;
+    overflow:visible;
+    padding: 14px 12px 120px;
+  }
+}
+
+.topbar{
+  margin-bottom: 12px;
+  align-items:stretch;
+}
+
+h1{
+  font-family: "Playfair Display", ui-serif, Georgia, serif;
+  font-size: 24px;
+  letter-spacing: .2px;
+}
+
+.sub{
+  font-size:12px;
+  color: var(--muted);
+  line-height:1.35;
+}
+
+.rightTop{ width:100%; }
+
+.pillrow{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:10px;
+  align-items:stretch;
+  justify-content:stretch;
+}
+
+.pill{
+  border-radius: 20px;
+  background: rgba(10,12,14,.34);
+  border:1px solid rgba(242,237,227,.14);
+  box-shadow: 0 16px 38px rgba(0,0,0,.28);
+}
+
+.pill span{
+  text-transform:uppercase;
+  letter-spacing: .14em;
+  font-size: 10px;
+  color: rgba(242,237,227,.62);
+}
+
+.pill b{font-family: var(--mono); font-size: 14px}
+
+.pill:nth-child(3){ grid-column: 1 / -1; }
+
+.progress{
+  height: 10px;
+  border-radius:999px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(242,237,227,.14);
+}
+
+.bar{
+  background: linear-gradient(90deg, rgba(216,176,122,.95), rgba(108,240,192,.88));
+}
+
+.petCard{
+  margin-top:10px;
+  border-radius: 26px;
+  background: rgba(10,12,14,.36);
+  border:1px solid rgba(242,237,227,.12);
+}
+
+.petSvgWrap{
+  border-radius:18px;
+  background: rgba(0,0,0,.18);
+  border:1px solid rgba(242,237,227,.12);
+}
+
+.gridframe{
+  background: rgba(8,10,12,.36);
+  border:1px solid rgba(242,237,227,.12);
+  border-radius: 28px;
+  box-shadow: 0 30px 90px rgba(0,0,0,.55);
+}
+
+.controls{
+  background: transparent;
+  border-bottom:1px solid rgba(242,237,227,.10);
+}
+
+input[type="text"], button{
+  border-radius: 18px;
+  background: rgba(255,255,255,.06);
+  border:1px solid rgba(242,237,227,.12);
+}
+
+button.btnAccent{ border-color: rgba(216,176,122,.40); }
+button.btnDanger{ border-color: rgba(255,107,107,.40); }
+
+.monthMenu{ background: rgba(10,12,14,.82); }
+
+.monthItem.active{
+  background: rgba(216,176,122,.12);
+  border-color: rgba(216,176,122,.28);
+}
+
+thead th{
+  background: rgba(10,12,14,.82);
+  color: rgba(242,237,227,.62);
+}
+
+tbody th{ background: rgba(10,12,14,.72); }
+
+.taskCard{
+  background: rgba(10,12,14,.36);
+  border:1px solid rgba(242,237,227,.12);
+}
+
+.taskCard.done{
+  border-color: rgba(108,240,192,.28);
+  background: rgba(108,240,192,.06);
+}
+
+.switchBtn{
+  border-color: rgba(242,237,227,.16);
+  background: rgba(255,255,255,.05);
+}
+
+.taskCard.done .switchBtn{
+  border-color: rgba(108,240,192,.36);
+  background: rgba(108,240,192,.15);
+}
+
+.toast{
+  background: rgba(10,12,14,.86);
+  border:1px solid rgba(242,237,227,.12);
+}
+
+.footer{ display:none; }
+
+.fab{
+  border-radius: 18px;
+  border-color: rgba(216,176,122,.40);
+  background: linear-gradient(180deg, rgba(216,176,122,.18), rgba(108,240,192,.10));
+}
+
+.bottomNav{
+  position:fixed;
+  left:50%;
+  transform: translateX(-50%);
+  bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+  width: min(420px, calc(100% - 24px));
+  height: 62px;
+  border-radius: 24px;
+  border:1px solid rgba(242,237,227,.12);
+  background: rgba(10,12,14,.44);
+  box-shadow: 0 26px 70px rgba(0,0,0,.55);
+  display:flex;
+  align-items:center;
+  justify-content:space-around;
+  gap:10px;
+  z-index:200;
+  pointer-events:none;
+}
+
+.bottomNav .navDot{
+  width:10px; height:10px;
+  border-radius:999px;
+  border:1px solid rgba(242,237,227,.14);
+  background: rgba(255,255,255,.04);
+  opacity:.85;
+}
+
+.bottomNav .navDot.active{
+  background: rgba(216,176,122,.34);
+  border-color: rgba(216,176,122,.40);
+  width: 14px; height:14px;
+}
+
+@media(min-width: 721px){ .bottomNav{ display:none; } }
+
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <div class="title">
+        <h1>Habit Tracer by Community 5.5%</h1>
+        <div class="sub">Klikasz kropkę = zadanie zrobione danego dnia → <b>+10 XP</b>. Co <b>50 XP</b> rośnie level. Jajo pęka co level — <b>a na 5 levelu</b> wykluwa się smok! Karm go wykonanymi zadaniami i patrz jak rośnie!</div>
+      </div>
+
+      <div class="rightTop">
+        <div class="pillrow">
+          <div class="pill" title="Łączne XP (sumuje wszystkie miesiące)">
+            <span>XP</span> <b id="xpTxt">0</b>
+          </div>
+          <div class="pill" title="Level = 1 + ⌊XP / 50⌋">
+            <span>LEVEL</span> <b id="lvlTxt">1</b>
+          </div>
+          <div class="pill" style="gap:12px" title="Postęp do kolejnego levelu">
+            <span>PROGRESS</span>
+            <div class="progress" aria-label="progress"><div class="bar" id="bar"></div></div>
+            <b id="toNextTxt" style="min-width:92px;text-align:right">50 do next</b>
+          </div>
+          <div class="pill" title="XP w aktualnie wybranym miesiącu">
+            <span>MIESIĄC</span> <b id="monthXpTxt">0</b>
+          </div>
         </div>
-        <form id="taskForm" class="add-task">
-          <input id="taskInput" type="text" placeholder="Dodaj nowe zadanie" required />
-          <button type="submit">Dodaj</button>
-        </form>
-      </header>
 
-      <section>
-        <ul id="taskList" class="task-list" aria-live="polite"></ul>
-      </section>
-    </main>
+        <div class="petCard" id="petCard" title="Maskotka rośnie wraz z levelem">
+          <div class="petGlow"></div>
+          <div class="petSvgWrap">
+            <svg class="petSvg" id="petSvg" viewBox="0 0 74 74" aria-label="smocze jajo">
+              <defs>
+                <linearGradient id="eggGrad" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="rgba(122,162,255,.95)"/>
+                  <stop offset="1" stop-color="rgba(87,242,184,.75)"/>
+                </linearGradient>
+                <linearGradient id="bellyGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stop-color="rgba(247,208,106,.75)"/>
+                  <stop offset="1" stop-color="rgba(247,208,106,.12)"/>
+                </linearGradient>
+              </defs>
 
-    <template id="taskItemTemplate">
-      <li class="panel task-item">
-        <label>
-          <input class="toggle" type="checkbox" />
-          <span class="title"></span>
-        </label>
-        <button class="delete" type="button" aria-label="Usuń zadanie">Usuń</button>
-      </li>
-    </template>
-  </body>
+              <g id="eggGroup">
+                <g class="eggTop" id="eggTop">
+                  <path d="M37 10c-12 0-22 15-22 28 0 12 10 21 22 21s22-9 22-21C59 25 49 10 37 10z"
+                        fill="url(#eggGrad)" opacity=".78"/>
+                  <ellipse cx="37" cy="34" rx="18" ry="22" fill="rgba(0,0,0,.12)" opacity=".22"/>
+                </g>
+                <g class="eggBottom" id="eggBottom">
+                  <path d="M17 40c2 11 11 19 20 19s18-8 20-19c-4 3-10 5-20 5s-16-2-20-5z"
+                        fill="rgba(255,255,255,.10)"/>
+                </g>
+
+                <path class="crack" id="crack1" d="M37 22 L33 28 L38 33 L34 39 L40 44" />
+                <path class="crack" id="crack2" d="M25 30 L29 34 L26 39 L30 44" />
+                <path class="crack" id="crack3" d="M48 30 L44 34 L47 38 L43 44" />
+                <path class="crack" id="crack4" d="M37 18 L41 24 L36 30 L42 36" />
+              </g>
+
+              <g id="dragonGroup" opacity="0">
+                <path id="tail" d="M44 47c8 2 11 7 10 12-4-2-7-2-10 0 2-4 1-7-0-9z"
+                      fill="rgba(122,162,255,.55)"/>
+                <path id="wingL" d="M28 38c-9 2-11 9-8 14 4-3 7-4 11-3-4-3-5-7-3-11z"
+                      fill="rgba(87,242,184,.30)"/>
+                <path id="wingR" d="M46 38c9 2 11 9 8 14-4-3-7-4-11-3 4-3 5-7 3-11z"
+                      fill="rgba(87,242,184,.30)"/>
+                <ellipse id="body" cx="37" cy="46" rx="16" ry="14" fill="rgba(122,162,255,.70)"/>
+                <ellipse id="belly" cx="37" cy="50" rx="10" ry="9" fill="url(#bellyGrad)" opacity=".95"/>
+                <circle id="head" cx="37" cy="32" r="11" fill="rgba(122,162,255,.78)"/>
+                <path id="hornL" d="M31 23c-2 3-2 6 1 7" stroke="rgba(247,208,106,.85)" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                <path id="hornR" d="M43 23c2 3 2 6-1 7" stroke="rgba(247,208,106,.85)" stroke-width="2.6" stroke-linecap="round" fill="none"/>
+                <circle cx="33" cy="32" r="1.6" fill="rgba(0,0,0,.65)"/>
+                <circle cx="41" cy="32" r="1.6" fill="rgba(0,0,0,.65)"/>
+                <circle cx="33.6" cy="31.4" r=".6" fill="rgba(255,255,255,.75)"/>
+                <circle cx="41.6" cy="31.4" r=".6" fill="rgba(255,255,255,.75)"/>
+                <path d="M34 36c2 2 4 2 6 0" stroke="rgba(0,0,0,.55)" stroke-width="2" stroke-linecap="round" fill="none"/>
+
+                <g id="crown" opacity="0">
+                  <path d="M29 19l3 3 5-4 5 4 3-3 0 6H29z" fill="rgba(247,208,106,.85)"/>
+                  <circle cx="32" cy="19" r="1" fill="rgba(255,255,255,.8)"/>
+                  <circle cx="37" cy="18" r="1" fill="rgba(255,255,255,.8)"/>
+                  <circle cx="42" cy="19" r="1" fill="rgba(255,255,255,.8)"/>
+                </g>
+              </g>
+            </svg>
+          </div>
+
+          <div class="petMeta">
+            <div class="petName">
+              <span id="petTitle">Smocze jajo</span>
+              <span class="petBadge" id="petBadge">LV 1</span>
+            </div>
+            <div class="petStage" id="petStage">Skorupka: nienaruszona</div>
+            <div class="petLine">
+              <span>Forma:</span> <span id="petForm">Jajo</span>
+              <span class="petBadge" id="petStageBadge">Etap 1/6</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="gridframe">
+      <div class="controls">
+        <div class="left">
+          <label class="hint">Miesiąc</label>
+          <div class="monthPick" id="monthPick">
+            <button class="monthBtn" id="monthBtn" type="button">
+              <span id="monthBtnLabel">—</span>
+              <span class="caret">▾</span>
+            </button>
+            <div class="monthMenu hidden" id="monthMenu" role="listbox" aria-label="Wybór miesiąca"></div>
+          </div>
+
+          <button id="openSettingsBtn" class="iconBtn btnGhost" type="button" aria-label="Ustawienia">⚙︎</button>
+
+          <span class="hint">Zadanie / nawyk</span>
+          <input id="taskInput" type="text" placeholder="np. 45 min deep work" />
+          <button id="addBtn" class="btnAccent" type="button">Dodaj</button>
+        </div>
+        <div class="right">
+          <button id="exportBtn" class="btnGhost" type="button">Eksport (JSON)</button>
+          <button id="importBtn" class="btnGhost" type="button">Import</button>
+          
+          <button id="soundBtn" class="btnGhost" type="button">Dźwięk: ON</button>
+          <button id="testSoundBtn" class="btnGhost" type="button">Test dźwięku</button>
+          <button id="unlockSoundBtn" class="btnGhost" type="button">Odblokuj dźwięk</button>
+          <div id="audioNote" class="hint" style="align-self:center"></div>
+          <div id="audioDiag" class="hint" style="align-self:center; opacity:.85"></div>
+<button id="resetMonthBtn" class="btnDanger" type="button">Wyczyść miesiąc</button>
+        </div>
+      </div>
+      <div class="hint" style="padding:10px 14px 0; opacity:.92" data-mobile-hint="1">Na telefonie przewijaj tabelę w bok →</div>
+      
+
+      
+
+      <div class="mobileView" id="mobileView" aria-label="Widok dzienny">
+        <div class="dayStrip">
+          <button class="dayNav" id="prevDayBtn" type="button" aria-label="Poprzedni dzień">‹</button>
+          <div class="dayCenter">
+            <div class="dayLabel" id="dayLabel">—</div>
+            <div class="dayChips" id="dayChips" role="tablist" aria-label="Dni miesiąca"></div>
+          </div>
+          <button class="dayNav" id="nextDayBtn" type="button" aria-label="Następny dzień">›</button>
+        </div>
+        <div class="daySummary" id="daySummary"></div>
+        <div class="mobileTasks" id="mobileTasks"></div>
+      </div>
+
+<div class="tablewrap">
+        <table id="tbl" aria-label="habit tracker">
+          <thead>
+            <tr id="headRow">
+              <th>Nawyk / Zadanie</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyEl"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>
+      Tip: kliknięcie tej samej kropki drugi raz <span class="kbd">cofa</span> wykonanie (i XP).
+      <div class="cta">Podoba Ci się? Chcesz więcej takich hacków? Kliknij w link. <a href="https://www.naffy.io/alchemia" target="_blank" rel="noopener">Alchemia Potencjału</a> jest dla Ciebie!</div>
+    </div>
+      <div>Działa offline (localStorage). Możesz też dodać do ekranu głównego w telefonie. <span style="opacity:.7; margin-left:10px">Build: v17 (levels+egg above tasks on mobile)</span></div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  
+  <nav class="bottomNav" aria-hidden="true">
+    <span class="navDot"></span>
+    <span class="navDot"></span>
+    <span class="navDot active"></span>
+    <span class="navDot"></span>
+    <span class="navDot"></span>
+  </nav>
+
+<button class="fab" id="fabAdd" type="button" aria-label="Dodaj nawyk">＋</button>
+
+  <div class="sheet hidden" id="taskSheet" role="dialog" aria-modal="true" aria-label="Dodaj nawyk">
+    <div class="sheetBackdrop" data-close="taskSheet"></div>
+    <div class="sheetPanel">
+      <div class="sheetHeader">
+        <div class="sheetTitle" id="taskSheetTitle">Dodaj nawyk</div>
+        <button class="iconBtn" id="closeTaskSheetBtn" type="button" aria-label="Zamknij">✕</button>
+      </div>
+      <div class="sheetBody">
+        <label class="fieldLabel" for="sheetTaskName">Nazwa</label>
+        <input id="sheetTaskName" type="text" placeholder="np. 45 min deep work" />
+        <button id="sheetSaveBtn" class="btnAccent" type="button">Zapisz</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet hidden" id="settingsSheet" role="dialog" aria-modal="true" aria-label="Ustawienia">
+    <div class="sheetBackdrop" data-close="settingsSheet"></div>
+    <div class="sheetPanel">
+      <div class="sheetHeader">
+        <div class="sheetTitle">Ustawienia</div>
+        <button class="iconBtn" id="closeSettingsSheetBtn" type="button" aria-label="Zamknij">✕</button>
+      </div>
+      <div class="sheetBody" id="settingsBody">
+        <div class="settingsHint">Tip: jeśli dźwięk nie działa na iPhonie w webview (np. Instagram/Telegram), otwórz link w Safari/Chrome.</div>
+        <div class="settingsBlock" id="settingsMoveAnchor"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+(() => {
+  const XP_PER_DONE = 10;
+  const XP_PER_LEVEL = 50;
+  const MAX_MASCOT_LEVEL = 50;
+  const STORAGE_KEY = "habit_tracker_xp_dragon_v2";
+
+  const $ = (id) => document.getElementById(id);
+
+  const taskInput = $("taskInput");
+  const addBtn = $("addBtn");
+  const tbodyEl = $("tbodyEl");
+  const headRow = $("headRow");
+
+  const xpTxt = $("xpTxt");
+  const lvlTxt = $("lvlTxt");
+  const bar = $("bar");
+  const toNextTxt = $("toNextTxt");
+  const monthXpTxt = $("monthXpTxt");
+
+  const toast = $("toast");
+  const exportBtn = $("exportBtn");
+  const importBtn = $("importBtn");
+  const resetMonthBtn = $("resetMonthBtn");
+
+  
+
+  // Mobile "app" view (daily view) + bottom sheets
+  const mobileView = $("mobileView");
+  const dayChips = $("dayChips");
+  const mobileTasks = $("mobileTasks");
+  const dayLabel = $("dayLabel");
+  const daySummary = $("daySummary");
+  const prevDayBtn = $("prevDayBtn");
+  const nextDayBtn = $("nextDayBtn");
+
+  const fabAdd = $("fabAdd");
+  const taskSheet = $("taskSheet");
+  const taskSheetTitle = $("taskSheetTitle");
+  const closeTaskSheetBtn = $("closeTaskSheetBtn");
+  const sheetTaskName = $("sheetTaskName");
+  const sheetSaveBtn = $("sheetSaveBtn");
+
+  const openSettingsBtn = $("openSettingsBtn");
+  const settingsSheet = $("settingsSheet");
+  const closeSettingsSheetBtn = $("closeSettingsSheetBtn");
+  const settingsMoveAnchor = $("settingsMoveAnchor");
+  const controlsRight = document.querySelector(".controls .right");
+
+  let selectedDay = null;
+  let editingTaskId = null;
+
+  // Sound
+  const soundBtn = $("soundBtn");
+  const testSoundBtn = $("testSoundBtn");
+  const audioNote = $("audioNote");
+  const unlockSoundBtn = $("unlockSoundBtn");
+  const audioDiag = $("audioDiag");
+const petCard = $("petCard");
+  const petSvg = $("petSvg");
+  const petTitle = $("petTitle");
+  const petBadge = $("petBadge");
+  const petStage = $("petStage");
+  const petForm = $("petForm");
+  const petStageBadge = $("petStageBadge");
+
+  const eggGroup = document.getElementById("eggGroup");
+  const dragonGroup = document.getElementById("dragonGroup");
+  const eggTop = document.getElementById("eggTop");
+  const eggBottom = document.getElementById("eggBottom");
+  const crown = document.getElementById("crown");
+
+  const cracks = [
+    document.getElementById("crack1"),
+    document.getElementById("crack2"),
+    document.getElementById("crack3"),
+    document.getElementById("crack4"),
+  ];
+
+  // Month picker
+  const monthBtn = $("monthBtn");
+  const monthBtnLabel = $("monthBtnLabel");
+  const monthMenu = $("monthMenu");
+  let currentYM = null;
+  let monthsList = [];
+
+  function nowMonthKey(d = new Date()){
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,"0");
+    return `${y}-${m}`;
+  }
+
+  function daysInMonth(ym){
+    const [y,m] = ym.split("-").map(Number);
+    return new Date(y, m, 0).getDate();
+  }
+
+  function formatMonthLabel(ym){
+    const [y,m] = ym.split("-").map(Number);
+    const date = new Date(y, m-1, 1);
+    return date.toLocaleDateString("pl-PL", { year:"numeric", month:"long" });
+  }
+
+  function uid(){
+    return "t_" + Math.random().toString(36).slice(2,10);
+  }
+
+  // --- Storage (robust): localStorage can be blocked in some contexts (file://, private mode, in-app webview).
+  let _storageOk = true;
+  let _storageWarned = false;
+  let _memoryFallback = null;
+
+  function _clone(obj){
+    return obj ? JSON.parse(JSON.stringify(obj)) : obj;
+  }
+
+  function load(){
+    if(!_storageOk){
+      if(!_memoryFallback) _memoryFallback = {};
+      return _clone(_memoryFallback);
+    }
+    try{
+      return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    }catch(e){
+      _storageOk = false;
+      if(!_memoryFallback) _memoryFallback = {};
+      if(!_storageWarned){
+        _storageWarned = true;
+        setTimeout(() => showToast("Uwaga: localStorage jest zablokowany (np. plik lokalny / tryb prywatny / webview). Aplikacja zadziała, ale dane mogą zniknąć po odświeżeniu."), 60);
+      }
+      return _clone(_memoryFallback);
+    }
+  }
+
+  function save(state){
+    if(!_storageOk){
+      _memoryFallback = _clone(state);
+      return;
+    }
+    try{
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }catch(e){
+      _storageOk = false;
+      _memoryFallback = _clone(state);
+      if(!_storageWarned){
+        _storageWarned = true;
+        setTimeout(() => showToast("Uwaga: localStorage jest zablokowany (np. plik lokalny / tryb prywatny / webview). Aplikacja zadziała, ale dane mogą zniknąć po odświeżeniu."), 60);
+      }
+    }
+  }
+
+
+
+  function ensureMonth(state, ym){
+    state.months ||= {};
+    if(!state.months[ym]){
+      state.months[ym] = { tasks: [], done: {} };
+    }
+    return state.months[ym];
+  }
+
+  function computeXPForMonth(month){
+    let count = 0;
+    for(const tid of Object.keys(month.done || {})){
+      const arr = month.done[tid] || [];
+      for(const v of arr) if(v) count++;
+    }
+    return count * XP_PER_DONE;
+  }
+
+  function computeTotalXP(state){
+    state.months ||= {};
+    let total = 0;
+    for(const ym of Object.keys(state.months)){
+      total += computeXPForMonth(state.months[ym]);
+    }
+    return total;
+  }
+
+  function computeLevel(xp){
+    return 1 + Math.floor(xp / XP_PER_LEVEL);
+  }
+
+  function toNext(xp){
+    const r = xp % XP_PER_LEVEL;
+    return (XP_PER_LEVEL - r) % XP_PER_LEVEL || XP_PER_LEVEL;
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add("show");
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove("show"), 1400);
+  }
+
+  // Sheets (mobile)
+  function openSheet(el){
+    if(!el) return;
+    el.classList.remove("hidden");
+    document.body.classList.add("noScroll");
+  }
+  function closeSheet(el){
+    if(!el) return;
+    el.classList.add("hidden");
+    document.body.classList.remove("noScroll");
+  }
+
+  // Close sheet on backdrop click
+  document.addEventListener("click", (e) => {
+    const b = e.target && e.target.closest && e.target.closest(".sheetBackdrop");
+    if(!b) return;
+    const id = b.getAttribute("data-close");
+    if(id) closeSheet($(id));
+  });
+
+  function isMobileUI(){
+    return window.matchMedia && window.matchMedia("(max-width: 720px)").matches;
+  }
+
+  function floatXP(cellBtn, text){
+    const el = document.createElement("div");
+    el.className = "floatXP";
+    el.textContent = text;
+    cellBtn.appendChild(el);
+    el.style.left = "50%";
+    el.style.top = "50%";
+    el.style.transform = "translate(-50%, -50%)";
+    el.addEventListener("animationend", () => el.remove());
+  }
+  // --- Audio (no assets, WebAudio synth) ---
+  const SOUND_KEY = STORAGE_KEY + "_sound_enabled";
+  let soundEnabled = true;
+  let audioCtx = null;
+
+    let audioHintShown = false;
+  let audioPlayFailHint = false;
+
+  function updateAudioDiag(){
+    if(!audioDiag) return;
+    const ctxState = audioCtx ? audioCtx.state : "none";
+    const act = (navigator.userActivation && navigator.userActivation.isActive) ? "active" : "idle";
+    const hasTouch = (navigator.maxTouchPoints || 0) > 0;
+    audioDiag.textContent = `Audio: ${ctxState} · user:${act} · touch:${hasTouch ? "yes":"no"}`;
+  }
+
+function loadSoundPref(){
+    try{
+      const v = localStorage.getItem(SOUND_KEY);
+      if(v === null) return true;
+      return v === "1";
+    }catch(e){ return true; }
+  }
+  function saveSoundPref(v){
+    try{ localStorage.setItem(SOUND_KEY, v ? "1" : "0"); }catch(e){}
+  }
+  function ensureAudio(){
+    if(!soundEnabled) return null;
+    if(!window.AudioContext && !window.webkitAudioContext) return null;
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended"){
+      // Must be resumed on a user gesture; our calls are from clicks
+      audioCtx.resume().catch(()=>{});
+    
+      setTimeout(() => {
+        if(!audioHintShown && audioCtx && audioCtx.state !== "running"){
+          audioHintShown = true;
+          showToast("Jeśli nie słychać dźwięku: otwórz w Safari/Chrome (webview czasem blokuje audio).");
+        }
+      }, 250);
+}
+    updateAudioDiag();
+    return audioCtx;
+  }
+
+
+  let audioUnlocked = false;
+
+  function unlockAudio(){
+    if(!soundEnabled) return;
+    const ctx = ensureAudio();
+    if(!ctx){
+      if(!audioPlayFailHint){
+        audioPlayFailHint = true;
+        // Cichy fallback hint – szczególnie dla iOS webview
+        setTimeout(() => showToast("Brak dźwięku? Sprawdź głośność / tryb cichy. W webview (np. Telegram) otwórz w Safari."), 50);
+      }
+
+
+
+      return;
+    }
+    if(audioUnlocked) return;
+    // "priming" – bardzo cichy impuls, żeby iOS/Safari uznało audio za odblokowane
+    try{
+      playTone({freq: 440, dur: 0.02, type:"sine", gain: 0.001});
+      playHtmlBeep(660, 0.03, 0.10);
+      audioUnlocked = true;
+    }catch(e){}
+  }
+
+  function playTone({freq=440, dur=0.08, type="sine", gain=0.10, detune=0, when=0, ramp=0.01}){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const t0 = ctx.currentTime + when;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, t0);
+    osc.detune.setValueAtTime(detune, t0);
+    g.gain.setValueAtTime(0.0001, t0);
+    g.gain.exponentialRampToValueAtTime(gain, t0 + ramp);
+    g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    osc.connect(g);
+    g.connect(ctx.destination);
+    osc.start(t0);
+    osc.stop(t0 + dur + 0.02);
+  }
+
+  function playChord({freqs=[440,550], dur=0.35, type="triangle", gain=0.045, when=0, attack=0.02}){
+    const ctx = ensureAudio();
+    if(!ctx) return;
+    const t0 = ctx.currentTime + when;
+    const master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, t0);
+    master.gain.exponentialRampToValueAtTime(gain, t0 + attack);
+    master.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+    master.connect(ctx.destination);
+
+    for(const f of freqs){
+      const osc = ctx.createOscillator();
+      const g = ctx.createGain();
+      osc.type = type;
+      osc.frequency.setValueAtTime(f, t0);
+      // subtle "chorus" / weight
+      osc.detune.setValueAtTime((Math.random()*8)-4, t0);
+      g.gain.setValueAtTime(1.0, t0);
+      osc.connect(g);
+      g.connect(master);
+      osc.start(t0);
+      osc.stop(t0 + dur + 0.02);
+    }
+  }
+
+  function playXpSound(){
+    // short "tick" + tiny sparkle
+    playTone({freq: 740, dur: 0.06, type:"triangle", gain:0.085});
+    playTone({freq: 1100, dur: 0.05, type:"sine", gain:0.050, when:0.03});
+  }
+
+  function playLevelUpSound(){
+    // "ważny, podniosły" – krótki, cięższy akord + rozświetlenie
+    // Dm (D-A) → Dm (D-F-A) z lekkim "chórem"
+    playChord({freqs:[146.83, 220.00], dur:0.28, type:"sine", gain:0.110, when:0.00, attack:0.02}); // D3 + A3
+    playChord({freqs:[293.66, 349.23, 440.00], dur:0.46, type:"triangle", gain:0.055, when:0.16, attack:0.03}); // D4 F4 A4
+    playTone({freq: 587.33, dur: 0.16, type:"triangle", gain:0.030, when:0.45}); // D5 sparkle
+    playTone({freq: 880.00, dur: 0.10, type:"sine", gain:0.016, when:0.54});    // A5 glint
+  }
+
+
+
+  // --- HTMLAudio fallback (WAV data URI) ---
+  function wavDataUrl(freq=440, duration=0.08, volume=0.25, sampleRate=22050){
+    const numSamples = Math.max(1, Math.floor(sampleRate * duration));
+    const bytesPerSample = 2;
+    const blockAlign = bytesPerSample;
+    const byteRate = sampleRate * blockAlign;
+    const dataSize = numSamples * bytesPerSample;
+    const buffer = new ArrayBuffer(44 + dataSize);
+    const view = new DataView(buffer);
+
+    function writeStr(off, s){
+      for(let i=0;i<s.length;i++) view.setUint8(off+i, s.charCodeAt(i));
+    }
+    let offset = 0;
+    writeStr(offset, "RIFF"); offset += 4;
+    view.setUint32(offset, 36 + dataSize, true); offset += 4;
+    writeStr(offset, "WAVE"); offset += 4;
+    writeStr(offset, "fmt "); offset += 4;
+    view.setUint32(offset, 16, true); offset += 4; // PCM header size
+    view.setUint16(offset, 1, true); offset += 2;  // PCM
+    view.setUint16(offset, 1, true); offset += 2;  // mono
+    view.setUint32(offset, sampleRate, true); offset += 4;
+    view.setUint32(offset, byteRate, true); offset += 4;
+    view.setUint16(offset, blockAlign, true); offset += 2;
+    view.setUint16(offset, 16, true); offset += 2; // bits
+    writeStr(offset, "data"); offset += 4;
+    view.setUint32(offset, dataSize, true); offset += 4;
+
+    const amp = Math.max(0, Math.min(1, volume)) * 32767;
+    for(let i=0;i<numSamples;i++){
+      const t = i / sampleRate;
+      // soft sine with quick fade to avoid click
+      const fade = Math.min(1, i/120) * Math.min(1, (numSamples-i)/120);
+      const sample = Math.sin(2*Math.PI*freq*t) * amp * fade;
+      view.setInt16(44 + i*2, sample, true);
+    }
+
+    // base64 encode
+    const bytes = new Uint8Array(buffer);
+    let binary = "";
+    const chunk = 0x8000;
+    for(let i=0;i<bytes.length;i+=chunk){
+      binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk));
+    }
+    return "data:audio/wav;base64," + btoa(binary);
+  }
+
+  function playHtmlBeep(freq, dur, vol){
+    if(!soundEnabled) return false;
+    try{
+      const a = new Audio(wavDataUrl(freq, dur, vol));
+      a.volume = 1.0;
+      a.playsInline = true;
+      a.play().catch(()=>{});
+      return true;
+    }catch(e){
+      return false;
+    }
+  }
+
+  function playXpSoundHtml(){
+    playHtmlBeep(740, 0.06, 0.30);
+    setTimeout(()=> playHtmlBeep(1100, 0.05, 0.22), 30);
+  }
+
+  function playLevelUpSoundHtml(){
+    // "ważny" chord-ish: sequential tones
+    playHtmlBeep(146.83, 0.12, 0.34);
+    setTimeout(()=> playHtmlBeep(220.00, 0.14, 0.34), 60);
+    setTimeout(()=> playHtmlBeep(293.66, 0.16, 0.30), 140);
+    setTimeout(()=> playHtmlBeep(349.23, 0.18, 0.28), 200);
+    setTimeout(()=> playHtmlBeep(440.00, 0.22, 0.28), 260);
+    setTimeout(()=> playHtmlBeep(587.33, 0.16, 0.22), 420);
+  }
+
+  function playXpSoundSafe(){
+    if(!soundEnabled) return;
+    unlockAudio();
+    // HTMLAudio first (most compatible)
+    try{ playXpSoundHtml(); }catch(e){}
+    // WebAudio as a bonus (if allowed)
+    try{ playXpSound(); }catch(e){}
+  }
+
+
+  function playLevelUpSoundSafe(){
+    if(!soundEnabled) return;
+    unlockAudio();
+    try{ playLevelUpSoundHtml(); }catch(e){}
+    try{ playLevelUpSound(); }catch(e){}
+  }
+
+
+  function sparkBurst(){
+    const wrap = petCard.querySelector(".petSvgWrap");
+    const n = 10;
+    for(let i=0;i<n;i++){
+      const s = document.createElement("div");
+      s.className = "spark";
+      const ang = (Math.PI * 2) * (i/n) + (Math.random()*0.35);
+      const r = 22 + Math.random()*20;
+      const dx = Math.cos(ang) * r;
+      const dy = Math.sin(ang) * r;
+      s.style.setProperty("--dx", `${dx}px`);
+      s.style.setProperty("--dy", `${dy}px`);
+      s.style.left = "50%";
+      s.style.top = "50%";
+      s.style.transform = "translate(-50%,-50%)";
+      wrap.appendChild(s);
+      s.addEventListener("animationend", () => s.remove());
+    }
+  }
+
+  function animateLevelUp(){
+    petCard.classList.remove("lvlup");
+    void petCard.offsetWidth;
+    petCard.classList.add("lvlup");
+    sparkBurst();
+    setTimeout(()=> petCard.classList.remove("lvlup"), 520);
+  }
+
+  function clamp(n, a, b){ return Math.max(a, Math.min(b, n)); }
+
+  function updateMascot(level){
+    const L = clamp(level, 1, 9999);
+    const visualL = clamp(L, 1, MAX_MASCOT_LEVEL);
+
+    const hue = Math.round((visualL-1) * 3.2);
+    petSvg.style.setProperty("--hue", `${hue}deg`);
+    petSvg.setAttribute("data-hue", "1");
+
+    cracks.forEach(c => c.classList.remove("showCrack"));
+
+    eggGroup.classList.remove("open");
+    eggTop.classList.remove("hidden");
+    eggBottom.classList.remove("hidden");
+
+    const g = (visualL <= 5) ? 0.70 : (0.70 + ((visualL-5) / (MAX_MASCOT_LEVEL-5)) * 0.70);
+    dragonGroup.setAttribute("transform", `translate(37 37) scale(${g}) translate(-37 -37)`);
+
+    let title = "Smocze jajo";
+    let form = "Jajo";
+    let stageTxt = "Skorupka: nienaruszona";
+    let stageIdx = 1;
+    let stageMax = 6;
+
+    if(visualL === 2){
+      cracks[0].classList.add("showCrack");
+      stageTxt = "Skorupka: pierwsze pęknięcie";
+    } else if(visualL === 3){
+      cracks[0].classList.add("showCrack");
+      cracks[1].classList.add("showCrack");
+      stageTxt = "Skorupka: sieć pęknięć";
+    } else if(visualL === 4){
+      cracks[0].classList.add("showCrack");
+      cracks[1].classList.add("showCrack");
+      cracks[2].classList.add("showCrack");
+      stageTxt = "Skorupka: prawie gotowe";
+    } else if(visualL === 5){
+      cracks.forEach(c => c.classList.add("showCrack"));
+      eggGroup.classList.add("open");
+      title = "Wykluwanie...";
+      form = "Smok (baby)";
+      stageTxt = "Pęka do końca → pierwszy oddech.";
+      stageIdx = 2;
+      dragonGroup.style.opacity = "1";
+    } else if(visualL >= 6){
+      eggGroup.classList.add("open");
+      dragonGroup.style.opacity = "1";
+      eggTop.classList.add("hidden");
+      eggBottom.classList.remove("hidden");
+
+      if(visualL <= 10){
+        title = "Mały smok";
+        form = "Baby dragon";
+        stageTxt = "Rośnie, uczy się latać.";
+        stageIdx = 3;
+      } else if(visualL <= 20){
+        title = "Młody smok";
+        form = "Juvenile";
+        stageTxt = "Wings online. Więcej mocy, mniej chaosu.";
+        stageIdx = 4;
+      } else if(visualL <= 35){
+        title = "Smok";
+        form = "Young dragon";
+        stageTxt = "Stabilny ogień. Stabilne nawyki.";
+        stageIdx = 5;
+      } else {
+        title = "Stary smok";
+        form = "Elder dragon";
+        stageTxt = "Dojrzała forma. Utrwalanie.";
+        stageIdx = 6;
+      }
+    } else {
+      dragonGroup.style.opacity = "0";
+    }
+
+    if(L >= MAX_MASCOT_LEVEL){
+      crown.setAttribute("opacity","1");
+      stageTxt = "Forma maksymalna. Level 50 osiągnięty.";
+    } else {
+      crown.setAttribute("opacity","0");
+    }
+
+    petTitle.textContent = title;
+    petForm.textContent = form;
+    petStage.textContent = stageTxt;
+    petStageBadge.textContent = `Etap ${stageIdx}/${stageMax}`;
+    petBadge.textContent = `LV ${L}`;
+  }
+
+
+
+  function ensureSelectedDay(dim){
+    const today = new Date();
+    const isThisMonth = nowMonthKey(today) === currentYM;
+    if(selectedDay === null){
+      selectedDay = isThisMonth ? today.getDate() : 1;
+    }
+    selectedDay = clamp(selectedDay, 1, dim);
+    return selectedDay;
+  }
+
+  function monthDateObj(day){
+    const [y,m] = currentYM.split("-").map(Number);
+    return new Date(y, m-1, day);
+  }
+
+  function renderMobileDay(month, dim){
+    if(!mobileView || !dayChips || !mobileTasks) return;
+
+    const dsel = ensureSelectedDay(dim);
+    const dt = monthDateObj(dsel);
+    const weekday = dt.toLocaleDateString("pl-PL", { weekday:"long" });
+    if(dayLabel) dayLabel.textContent = `Dzień ${dsel} • ${weekday}`;
+
+    // Day chips
+    dayChips.innerHTML = "";
+    const today = new Date();
+    const todayIsThisMonth = nowMonthKey(today) === currentYM;
+
+    for(let d=1; d<=dim; d++){
+      const chip = document.createElement("button");
+      chip.type = "button";
+      chip.className = "dayChip" + (d === dsel ? " active" : "");
+      chip.setAttribute("role","tab");
+      chip.setAttribute("aria-selected", d === dsel ? "true":"false");
+      const wd = monthDateObj(d).getDay();
+      if(wd === 0 || wd === 6) chip.classList.add("weekend");
+      if(todayIsThisMonth && d === today.getDate()) chip.classList.add("today");
+      chip.textContent = d;
+      chip.addEventListener("click", () => { selectedDay = d; render(); });
+      dayChips.appendChild(chip);
+    }
+
+    setTimeout(() => {
+      const a = dayChips.querySelector(".dayChip.active");
+      if(a && a.scrollIntoView) a.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+    }, 0);
+
+    // Tasks list
+    mobileTasks.innerHTML = "";
+
+    if(!month.tasks || month.tasks.length === 0){
+      if(daySummary) daySummary.textContent = "";
+      const empty = document.createElement("div");
+      empty.className = "emptyState";
+      empty.innerHTML = 'Brak nawyków w tym miesiącu. Kliknij <b>＋</b>, żeby dodać pierwszy.';
+      mobileTasks.appendChild(empty);
+      return;
+    }
+
+    month.done ||= {};
+    let doneCount = 0;
+    const total = month.tasks.length;
+
+    for(const task of month.tasks){
+      month.done[task.id] ||= Array(31).fill(false);
+      const isDone = !!month.done[task.id][dsel-1];
+      if(isDone) doneCount++;
+
+      const card = document.createElement("div");
+      card.className = "taskCard" + (isDone ? " done" : "");
+      card.setAttribute("role","button");
+      card.setAttribute("tabindex","0");
+      card.setAttribute("aria-label", `${task.name} — dzień ${dsel}`);
+
+      const meta = document.createElement("div");
+      meta.className = "taskMeta";
+
+      const title = document.createElement("div");
+      title.className = "taskTitleM";
+      title.textContent = task.name;
+
+      const sub = document.createElement("div");
+      sub.className = "taskSubM";
+      sub.textContent = isDone ? "Zrobione • tapnij, żeby cofnąć" : "Nie zrobione • tapnij, żeby zaznaczyć";
+
+      meta.appendChild(title);
+      meta.appendChild(sub);
+
+      const tools = document.createElement("div");
+      tools.className = "taskTools";
+
+      const edit = document.createElement("button");
+      edit.className = "miniIcon";
+      edit.type = "button";
+      edit.title = "Edytuj nazwę";
+      edit.textContent = "✎";
+      edit.addEventListener("click", (e) => {
+        e.stopPropagation();
+        openTaskSheet({mode:"edit", taskId: task.id, name: task.name});
+      });
+
+      const del = document.createElement("button");
+      del.className = "miniIcon";
+      del.type = "button";
+      del.title = "Usuń";
+      del.textContent = "🗑";
+      del.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if(confirm(`Usunąć zadanie: "${task.name}"?`)){
+          const st = load();
+          const mo = ensureMonth(st, currentYM);
+          mo.tasks = (mo.tasks || []).filter(t => t.id !== task.id);
+          mo.done ||= {};
+          delete mo.done[task.id];
+          save(st);
+          render();
+          showToast("Usunięto.");
+        }
+      });
+
+      const sw = document.createElement("button");
+      sw.className = "switchBtn";
+      sw.type = "button";
+      sw.setAttribute("aria-label", isDone ? "Oznacz jako nie zrobione" : "Oznacz jako zrobione");
+      const knob = document.createElement("span");
+      knob.className = "switchKnob";
+      sw.appendChild(knob);
+      sw.addEventListener("click", (e) => { e.stopPropagation(); toggleDone(task.id, dsel); });
+
+      tools.appendChild(edit);
+      tools.appendChild(del);
+      tools.appendChild(sw);
+
+      card.appendChild(meta);
+      card.appendChild(tools);
+
+      card.addEventListener("click", () => toggleDone(task.id, dsel));
+      card.addEventListener("keydown", (e) => {
+        if(e.key === "Enter" || e.key === " "){
+          e.preventDefault();
+          toggleDone(task.id, dsel);
+        }
+      });
+
+      mobileTasks.appendChild(card);
+    }
+
+    if(daySummary){
+      daySummary.textContent = `${doneCount}/${total} zrobione • +${doneCount*XP_PER_DONE} XP dziś`;
+    }
+  }
+
+  function toggleDone(taskId, day){
+    const st = load();
+    const mo = ensureMonth(st, currentYM);
+    mo.done ||= {};
+    mo.done[taskId] ||= Array(31).fill(false);
+
+    const before = !!mo.done[taskId][day-1];
+    mo.done[taskId][day-1] = !before;
+    save(st);
+
+    try{ if(navigator.vibrate) navigator.vibrate(10); }catch(e){}
+
+    updateStats(true);
+
+    if(!before){
+      try{ playXpSoundSafe(); }catch(e){}
+    }
+
+    render();
+  }
+
+  function addOrEditTask(name){
+    const clean = (name || "").trim();
+    if(!clean){
+      showToast("Wpisz nazwę zadania.");
+      return false;
+    }
+
+    const st = load();
+    const mo = ensureMonth(st, currentYM);
+
+    if(editingTaskId){
+      const t = (mo.tasks || []).find(t => t.id === editingTaskId);
+      if(t){
+        t.name = clean;
+        save(st);
+        showToast("Zmieniono nazwę.");
+        return true;
+      }
+      // fallback to add
+      editingTaskId = null;
+    }
+
+    const t = { id: uid(), name: clean };
+    mo.tasks ||= [];
+    mo.tasks.push(t);
+    mo.done ||= {};
+    mo.done[t.id] = Array(31).fill(false);
+    save(st);
+    showToast("Dodano zadanie.");
+    return true;
+  }
+
+  function openTaskSheet({mode="add", taskId=null, name=""} = {}){
+    if(!taskSheet) return;
+    editingTaskId = (mode === "edit") ? taskId : null;
+    if(taskSheetTitle) taskSheetTitle.textContent = (mode === "edit") ? "Edytuj nawyk" : "Dodaj nawyk";
+    if(sheetTaskName){
+      sheetTaskName.value = name || "";
+      setTimeout(() => sheetTaskName.focus(), 80);
+    }
+    openSheet(taskSheet);
+  }
+
+
+  function render(){
+    const state = load();
+    const ym = currentYM;
+    const month = ensureMonth(state, ym);
+
+    const dim = daysInMonth(ym);
+
+    if(isMobileUI()){
+      // Mobile: daily view (more app-like than a wide table)
+      renderMobileDay(month, dim);
+    } else {
+    while(headRow.children.length > 1) headRow.removeChild(headRow.lastChild);
+    for(let d=1; d<=dim; d++){
+      const th = document.createElement("th");
+      th.textContent = d;
+      headRow.appendChild(th);
+    }
+
+    tbodyEl.innerHTML = "";
+    for(const task of month.tasks){
+      const tr = document.createElement("tr");
+
+      const th = document.createElement("th");
+      const rowTop = document.createElement("div");
+      rowTop.className = "rowTop";
+
+      const name = document.createElement("div");
+      name.className = "taskName";
+      name.textContent = task.name;
+
+      const actions = document.createElement("div");
+      actions.className = "taskActions";
+
+      const editBtn = document.createElement("button");
+      editBtn.className = "miniBtn";
+      editBtn.type = "button";
+      editBtn.title = "Edytuj nazwę";
+      editBtn.textContent = "✎";
+      editBtn.addEventListener("click", () => {
+        const newName = prompt("Nowa nazwa zadania:", task.name);
+        if(newName && newName.trim()){
+          const st = load();
+          const mo = ensureMonth(st, currentYM);
+          const t = (mo.tasks || []).find(t => t.id === task.id);
+          if(t){
+            t.name = newName.trim();
+            save(st);
+            render();
+            showToast("Zmieniono nazwę.");
+          }
+        }
+      });
+
+      const delBtn = document.createElement("button");
+      delBtn.className = "miniBtn";
+      delBtn.type = "button";
+      delBtn.title = "Usuń zadanie";
+      delBtn.textContent = "🗑";
+      delBtn.addEventListener("click", () => {
+        if(confirm(`Usunąć zadanie: "${task.name}"?`)){
+          const st = load();
+          const mo = ensureMonth(st, currentYM);
+          mo.tasks = (mo.tasks || []).filter(t => t.id !== task.id);
+          mo.done ||= {};
+          delete mo.done[task.id];
+          save(st);
+          render();
+          showToast("Usunięto.");
+        }
+      });
+
+      actions.appendChild(editBtn);
+      actions.appendChild(delBtn);
+      rowTop.appendChild(name);
+      rowTop.appendChild(actions);
+      th.appendChild(rowTop);
+      tr.appendChild(th);
+
+      month.done ||= {};
+      month.done[task.id] ||= Array(31).fill(false);
+
+      for(let d=1; d<=dim; d++){
+        const td = document.createElement("td");
+
+        const btn = document.createElement("button");
+        btn.className = "cellBtn";
+        btn.type = "button";
+        btn.setAttribute("aria-label", `${task.name} dzień ${d}`);
+
+        const dot = document.createElement("div");
+        dot.className = "dot";
+        dot.textContent = "✓";
+        btn.appendChild(dot);
+
+        const isDone = !!month.done[task.id][d-1];
+        if(isDone) btn.classList.add("done");
+
+        btn.addEventListener("click", () => {
+          // Uwaga: nie zapisujemy "starego" stanu z render() (bo może nadpisać profil/level).
+          // Zawsze bierzemy świeży stan z localStorage.
+          const st = load();
+          const mo = ensureMonth(st, currentYM);
+          mo.done ||= {};
+          mo.done[task.id] ||= Array(31).fill(false);
+
+          const before = !!mo.done[task.id][d-1];
+          mo.done[task.id][d-1] = !before;
+          save(st);
+
+          if(!before){
+            btn.classList.add("done");
+            floatXP(btn, `+${XP_PER_DONE} XP`);
+          }else{
+            btn.classList.remove("done");
+            floatXP(btn, `-${XP_PER_DONE} XP`);
+          }
+
+          // Najpierw aktualizacja UI/stats (żeby audio nigdy nie blokowało XP/leveli)
+          updateStats(true);
+
+          if(!before){
+            try{ playXpSoundSafe(); }catch(e){}
+          }
+        });
+
+        td.appendChild(btn);
+        tr.appendChild(td);
+      }
+
+      tbodyEl.appendChild(tr);
+    }
+    }
+
+    updateStats(false);
+  }
+
+
+  function buildMonths(){
+    const today = new Date();
+    monthsList = [];
+    for(let i=-12; i<=12; i++){
+      const d = new Date(today.getFullYear(), today.getMonth()+i, 1);
+      monthsList.push(nowMonthKey(d));
+    }
+  }
+
+  function openMonthMenu(){
+    monthMenu.classList.remove("hidden");
+  }
+  function closeMonthMenu(){
+    monthMenu.classList.add("hidden");
+  }
+  function toggleMonthMenu(){
+    monthMenu.classList.contains("hidden") ? openMonthMenu() : closeMonthMenu();
+  }
+
+  function setMonth(ym){
+    currentYM = ym;
+    monthBtnLabel.textContent = formatMonthLabel(ym);
+    // Mobile day view: keep selected day stable when switching months
+    try{
+      const dim = daysInMonth(ym);
+      if(selectedDay === null){
+        const today = new Date();
+        selectedDay = (nowMonthKey(today) === ym) ? Math.min(today.getDate(), dim) : 1;
+      } else {
+        selectedDay = Math.min(Math.max(1, selectedDay), dim);
+      }
+    }catch(e){}
+    // Update menu active state
+    for(const el of monthMenu.querySelectorAll(".monthItem")){
+      el.classList.toggle("active", el.dataset.ym === ym);
+    }
+    render();
+  }
+
+  function renderMonthMenu(){
+    monthMenu.innerHTML = "";
+    for(const ym of monthsList){
+      const item = document.createElement("div");
+      item.className = "monthItem";
+      item.dataset.ym = ym;
+      const left = document.createElement("div");
+      left.textContent = formatMonthLabel(ym);
+      const right = document.createElement("small");
+      right.textContent = ym;
+      item.appendChild(left);
+      item.appendChild(right);
+      item.addEventListener("click", () => {
+        setMonth(ym);
+        closeMonthMenu();
+      });
+      monthMenu.appendChild(item);
+    }
+  }
+
+  addBtn.addEventListener("click", () => {
+    const name = taskInput.value.trim();
+    if(!name){
+      showToast("Wpisz nazwę zadania.");
+      taskInput.focus();
+      return;
+    }
+    const state = load();
+    const month = ensureMonth(state, currentYM);
+    const t = { id: uid(), name };
+    month.tasks.push(t);
+    month.done ||= {};
+    month.done[t.id] = Array(31).fill(false);
+    save(state);
+    taskInput.value = "";
+    render();
+    showToast("Dodano zadanie.");
+  });
+
+  taskInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") addBtn.click();
+  });
+
+  // Mobile: FAB + task sheet
+  if(fabAdd){
+    fabAdd.addEventListener("click", () => openTaskSheet({mode:"add"}));
+  }
+  if(closeTaskSheetBtn){
+    closeTaskSheetBtn.addEventListener("click", () => closeSheet(taskSheet));
+  }
+  if(sheetSaveBtn){
+    sheetSaveBtn.addEventListener("click", () => {
+      if(addOrEditTask(sheetTaskName ? sheetTaskName.value : "")){
+        closeSheet(taskSheet);
+        render();
+      }
+    });
+  }
+  if(sheetTaskName){
+    sheetTaskName.addEventListener("keydown", (e) => {
+      if(e.key === "Enter"){
+        e.preventDefault();
+        sheetSaveBtn && sheetSaveBtn.click();
+      }
+    });
+  }
+
+  // Mobile: settings sheet (moves desktop controls into a sheet)
+  function placeControls(){
+    if(!controlsRight || !settingsMoveAnchor) return;
+    const isMobile = isMobileUI();
+
+    if(isMobile){
+      if(controlsRight.parentElement !== settingsMoveAnchor){
+        settingsMoveAnchor.appendChild(controlsRight);
+      }
+    } else {
+      const controlsEl = document.querySelector(".controls");
+      if(controlsEl && controlsRight.parentElement !== controlsEl){
+        controlsEl.appendChild(controlsRight);
+      }
+    }
+  }
+
+  if(openSettingsBtn){
+    openSettingsBtn.addEventListener("click", () => {
+      placeControls();
+      openSheet(settingsSheet);
+    });
+  }
+  if(closeSettingsSheetBtn){
+    closeSettingsSheetBtn.addEventListener("click", () => closeSheet(settingsSheet));
+  }
+
+  // Mobile: day navigation
+  function stepDay(delta){
+    const dim = daysInMonth(currentYM);
+    ensureSelectedDay(dim);
+    selectedDay = clamp(selectedDay + delta, 1, dim);
+    render();
+  }
+  if(prevDayBtn) prevDayBtn.addEventListener("click", () => stepDay(-1));
+  if(nextDayBtn) nextDayBtn.addEventListener("click", () => stepDay(1));
+
+  resetMonthBtn.addEventListener("click", () => {
+    const ym = currentYM;
+    if(!confirm(`Wyczyścić WSZYSTKO dla miesiąca ${formatMonthLabel(ym)}?`)) return;
+    const state = load();
+    state.months ||= {};
+    state.months[ym] = { tasks: [], done: {} };
+    save(state);
+    render();
+    showToast("Miesiąc wyczyszczony.");
+  });
+
+  exportBtn.addEventListener("click", () => {
+    const state = load();
+    const blob = new Blob([JSON.stringify(state, null, 2)], {type:"application/json"});
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "habit-tracker-dragon-backup.json";
+    a.click();
+    URL.revokeObjectURL(a.href);
+    showToast("Wyeksportowano JSON.");
+  });
+
+  importBtn.addEventListener("click", async () => {
+    const inp = document.createElement("input");
+    inp.type = "file";
+    inp.accept = "application/json";
+    inp.click();
+    inp.onchange = async () => {
+      const file = inp.files && inp.files[0];
+      if(!file) return;
+      const text = await file.text();
+      try{
+        const data = JSON.parse(text);
+        if(typeof data !== "object" || data === null) throw new Error("Zły format.");
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+        render();
+        showToast("Zaimportowano.");
+      }catch(e){
+        alert("Nie udało się zaimportować pliku. Upewnij się, że to backup JSON z tej aplikacji.");
+      }
+    };
+  });
+
+  // Close month menu on outside click
+  document.addEventListener("click", (e) => {
+    const pick = document.getElementById("monthPick");
+    if(!pick.contains(e.target)) closeMonthMenu();
+  });
+
+  monthBtn.addEventListener("click", (e) => {
+    e.preventDefault();
+    toggleMonthMenu();
+  });
+
+  // Seed
+  (function seedOnce(){
+    const state = load();
+    state._seeded ||= false;
+    if(state._seeded) return;
+
+    const ym = nowMonthKey(new Date());
+    const month = ensureMonth(state, ym);
+    if(month.tasks.length === 0){
+      month.tasks.push({id:uid(), name:"Ruch (min. 20 min)"});
+      month.tasks.push({id:uid(), name:"Deep work (min. 30 min)"});
+      month.tasks.push({id:uid(), name:"Regeneracja / sen (higiena)"});
+      month.done ||= {};
+      for(const t of month.tasks) month.done[t.id] = Array(31).fill(false);
+    }
+    state.profile ||= {};
+    state.profile.lastLevel = 1;
+    state._seeded = true;
+    save(state);
+  })();
+
+  function updateStats(maybeAnimate){
+    const st = load();
+    const mo = ensureMonth(st, currentYM);
+
+    const monthXP = computeXPForMonth(mo);
+    const totalXP = computeTotalXP(st);
+    const lvl = computeLevel(totalXP);
+    const next = toNext(totalXP);
+    const pct = ((totalXP % XP_PER_LEVEL) / XP_PER_LEVEL) * 100;
+
+    monthXpTxt.textContent = monthXP;
+    xpTxt.textContent = totalXP;
+    lvlTxt.textContent = lvl;
+    bar.style.width = `${pct}%`;
+    toNextTxt.textContent = `${next} do next`;
+
+    st.profile ||= {};
+    const prev = st.profile.lastLevel ?? lvl;
+    updateMascot(lvl);
+
+    if(maybeAnimate && lvl !== prev){
+      
+      playLevelUpSoundSafe();
+animateLevelUp();
+    }
+    st.profile.lastLevel = lvl;
+    save(st);
+  }
+
+  
+  // --- Mobile UX: levele + jajko/smoka BEZPOŚREDNIO nad sekcją zadań (controls) ---
+  const rightTop = document.querySelector(".rightTop");
+  const gridframe = document.querySelector(".gridframe");
+  const controlsEl = gridframe ? gridframe.querySelector(".controls") : null;
+
+  const statsRow = document.querySelector(".pillrow");
+  function placePet(){
+    if(!petCard || !gridframe || !controlsEl || !rightTop) return;
+    const isMobile = window.matchMedia("(max-width: 720px)").matches;
+
+    if(isMobile){
+      // kolejność na telefonie:
+      // [levele/progress] -> [jajo/smok] -> [sekcja zadań/nawyków]
+      petCard.classList.add("docked");
+      if(statsRow) statsRow.classList.add("dockedStats");
+
+      // wstaw przed controls, żeby było od razu widać progres przy klikaniu zadań
+      gridframe.insertBefore(petCard, controlsEl);
+      if(statsRow) gridframe.insertBefore(statsRow, petCard);
+    } else {
+      // desktop: wróć na górę
+      petCard.classList.remove("docked");
+      if(statsRow) statsRow.classList.remove("dockedStats");
+
+      if(statsRow) rightTop.appendChild(statsRow);
+      rightTop.appendChild(petCard);
+    }
+  }
+
+  // lekkie odciążenie resize
+  let _petResizeT = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(_petResizeT);
+    _petResizeT = setTimeout(() => { placePet(); placeControls(); }, 120);
+  });
+
+
+  // Init
+  soundEnabled = loadSoundPref();
+  
+  
+  // Reset dźwięku na ON (żeby uniknąć sytuacji, że stary OFF blokuje wszystko po aktualizacjach)
+  if(soundEnabled === false){
+    soundEnabled = true;
+    saveSoundPref(true);
+  }
+// Info dla iOS / webview (np. Telegram) – bywa, że dźwięk jest blokowany
+  const ua = navigator.userAgent || "";
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  const isTelegram = /Telegram/i.test(ua);
+  const isInApp = /FBAN|FBAV|Instagram|Line|Twitter|LinkedIn|WhatsApp|Telegram/i.test(ua);
+
+  if(audioNote){
+    if(isIOS && isTelegram){
+      audioNote.textContent = "iPhone + Telegram: dźwięk bywa zablokowany → otwórz w Safari.";
+    } else if(isIOS && isInApp){
+      audioNote.textContent = "iPhone: jeśli brak dźwięku, otwórz w Safari/Chrome.";
+    } else {
+      audioNote.textContent = "";
+    }
+  }
+
+if(soundBtn){
+    soundBtn.textContent = soundEnabled ? "Dźwięk: ON" : "Dźwięk: OFF";
+    soundBtn.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      saveSoundPref(soundEnabled);
+      soundBtn.textContent = soundEnabled ? "Dźwięk: ON" : "Dźwięk: OFF";
+      showToast(soundEnabled ? "Dźwięk włączony." : "Dźwięk wyłączony.");
+            updateAudioDiag();
+// If enabling, warm up the audio context on gesture
+      if(soundEnabled) ensureAudio();
+    });
+  }
+
+  // Odblokuj audio na pierwszej interakcji (iOS / webview)
+  document.addEventListener("pointerdown", () => {
+    unlockAudio();
+  }, { once: true });
+
+  if(testSoundBtn){
+    testSoundBtn.addEventListener("click", () => {
+      if(!soundEnabled){
+        showToast("Najpierw włącz dźwięk.");
+        return;
+      }
+      unlockAudio();
+      playXpSoundSafe();
+      setTimeout(() => playLevelUpSoundSafe(), 220);
+      showToast("Test: XP + Level Up");
+    });
+  }
+
+  buildMonths();
+  renderMonthMenu();
+  setMonth(nowMonthKey(new Date()));
+  closeMonthMenu();
+
+  placePet();
+  placeControls();
+})();
+</script>
+</body>
 </html>
