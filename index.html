@@ -4,7 +4,114 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Habit Tracker</title>
-    <link rel="stylesheet" href="styles.css" />
+    <style>
+      :root {
+        color-scheme: dark;
+        font-family: Inter, system-ui, -apple-system, sans-serif;
+        background: #020b18;
+        color: #e8f1ff;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: linear-gradient(180deg, #040d1c, #01060f);
+      }
+
+      .app {
+        width: min(900px, 92vw);
+        margin: 1.5rem auto;
+      }
+
+      .panel {
+        border-radius: 14px;
+        border: 1px solid rgba(64, 121, 194, 0.35);
+        background: linear-gradient(90deg, #071629, #081b30);
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+      }
+
+      .controls {
+        padding: 1rem;
+      }
+
+      h1 {
+        margin: 0;
+        font-size: 1.7rem;
+      }
+
+      .toolbar,
+      .add-task {
+        margin-top: 0.75rem;
+        display: flex;
+        gap: 0.75rem;
+      }
+
+      input,
+      select,
+      button {
+        border-radius: 10px;
+        border: 1px solid rgba(100, 146, 204, 0.45);
+        background: rgba(3, 14, 29, 0.9);
+        color: inherit;
+        padding: 0.65rem 0.75rem;
+        font-size: 1rem;
+      }
+
+      input,
+      select {
+        flex: 1;
+      }
+
+      button {
+        cursor: pointer;
+        min-width: 92px;
+      }
+
+      button:hover {
+        border-color: rgba(159, 204, 255, 0.9);
+      }
+
+      .task-list {
+        list-style: none;
+        margin: 1rem 0 0;
+        padding: 0;
+        display: grid;
+        gap: 0.75rem;
+      }
+
+      .task-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.9rem;
+      }
+
+      .task-item label {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex: 1;
+      }
+
+      .title.done {
+        text-decoration: line-through;
+        color: #9cb8da;
+      }
+
+      .delete {
+        background: rgba(72, 9, 19, 0.5);
+      }
+
+      .empty {
+        text-align: center;
+        padding: 1.25rem;
+        opacity: 0.85;
+      }
+    </style>
   </head>
   <body>
     <main class="app">
@@ -39,6 +146,102 @@
       </li>
     </template>
 
-    <script src="app.js"></script>
+    <script>
+      const state = {
+        tasks: [
+          { id: crypto.randomUUID(), title: 'Przygotować plan dnia', done: false },
+          { id: crypto.randomUUID(), title: '30 min treningu', done: true },
+          { id: crypto.randomUUID(), title: 'Nauka angielskiego', done: false },
+        ],
+        query: '',
+        filter: 'all',
+      };
+
+      const taskList = document.querySelector('#taskList');
+      const taskForm = document.querySelector('#taskForm');
+      const taskInput = document.querySelector('#taskInput');
+      const search = document.querySelector('#search');
+      const statusFilter = document.querySelector('#statusFilter');
+      const template = document.querySelector('#taskItemTemplate');
+
+      function getVisibleTasks() {
+        return state.tasks.filter((task) => {
+          const statusMatch =
+            state.filter === 'all' ||
+            (state.filter === 'done' && task.done) ||
+            (state.filter === 'open' && !task.done);
+
+          const queryMatch = task.title.toLowerCase().includes(state.query.toLowerCase());
+
+          return statusMatch && queryMatch;
+        });
+      }
+
+      function render() {
+        taskList.innerHTML = '';
+        const visibleTasks = getVisibleTasks();
+
+        if (!visibleTasks.length) {
+          const empty = document.createElement('li');
+          empty.className = 'panel empty';
+          empty.textContent = 'Brak zadań do wyświetlenia.';
+          taskList.append(empty);
+          return;
+        }
+
+        for (const task of visibleTasks) {
+          const fragment = template.content.cloneNode(true);
+          const item = fragment.querySelector('.task-item');
+          const checkbox = fragment.querySelector('.toggle');
+          const title = fragment.querySelector('.title');
+          const deleteButton = fragment.querySelector('.delete');
+
+          checkbox.checked = task.done;
+          title.textContent = task.title;
+          title.classList.toggle('done', task.done);
+
+          checkbox.addEventListener('change', () => {
+            task.done = checkbox.checked;
+            render();
+          });
+
+          deleteButton.addEventListener('click', () => {
+            state.tasks = state.tasks.filter((entry) => entry.id !== task.id);
+            render();
+          });
+
+          item.dataset.id = task.id;
+          taskList.append(fragment);
+        }
+      }
+
+      taskForm.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const value = taskInput.value.trim();
+        if (!value) {
+          return;
+        }
+
+        state.tasks.unshift({
+          id: crypto.randomUUID(),
+          title: value,
+          done: false,
+        });
+        taskInput.value = '';
+        render();
+      });
+
+      search.addEventListener('input', () => {
+        state.query = search.value;
+        render();
+      });
+
+      statusFilter.addEventListener('change', () => {
+        state.filter = statusFilter.value;
+        render();
+      });
+
+      render();
+    </script>
   </body>
 </html>
