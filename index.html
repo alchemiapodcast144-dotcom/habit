@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="pl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Habit</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      background: #0b0f14;
+      color: #f2ede3;
+    }
+
+    .gridframe {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 10px 0 24px;
+    }
+
+    .pillrow {
+      display: flex;
+      gap: 8px;
+      margin: 0 12px;
+      padding: 6px 0;
+    }
+
+    .pill {
+      background: #18222f;
+      border: 1px solid #273243;
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 13px;
+    }
+
+    .petCard {
+      margin: 0 12px;
+      padding: 14px;
+      border-radius: 14px;
+      background: #121a23;
+      border: 1px solid rgba(242,237,227,.08);
+    }
+
+    .controls {
+      margin: 0 12px;
+      padding: 12px;
+      border-radius: 12px;
+      background: #121a23;
+      border: 1px solid rgba(242,237,227,.08);
+    }
+
+    #mobileView {
+      margin: 0 12px;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 8px;
+    }
+
+    #mobileView li {
+      background: #121a23;
+      border: 1px solid rgba(242,237,227,.08);
+      border-radius: 12px;
+      padding: 12px;
+    }
+
+    .rightTop { display: none; }
+
+    /* Mascot + stats sticky while browsing tasks on mobile */
+    .pillrow.dockedStats,
+    .petCard.docked {
+      position: sticky;
+      z-index: 40;
+      background: rgba(8,10,12,.72);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .pillrow.dockedStats {
+      top: calc(env(safe-area-inset-top, 0px) + 8px);
+      margin: 0;
+      padding: 10px 12px 6px;
+      border-bottom: 1px solid rgba(242,237,227,.08);
+    }
+
+    .petCard.docked {
+      top: calc(env(safe-area-inset-top, 0px) + 86px);
+      margin: 0 12px 8px;
+      border-radius: 16px;
+    }
+
+    @media (max-width: 720px) {
+      .gridframe {
+        overflow: visible; /* sticky element nie może być "ucięty" */
+      }
+
+      .controls {
+        position: static; /* nie koliduje z docked stats + pet */
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="gridframe" id="gridframe">
+    <div class="pillrow" id="statsRow">
+      <span class="pill">HP 80%</span>
+      <span class="pill">Mood 😀</span>
+      <span class="pill">XP 120</span>
+    </div>
+
+    <section class="petCard" id="petCard">🥚 / 🐉</section>
+
+    <section class="controls" id="controls">Filtry i kontrolki</section>
+
+    <ul id="mobileView">
+      <li>Zadanie 1</li>
+      <li>Zadanie 2</li>
+      <li>Zadanie 3</li>
+      <li>Zadanie 4</li>
+      <li>Zadanie 5</li>
+      <li>Zadanie 6</li>
+      <li>Zadanie 7</li>
+      <li>Zadanie 8</li>
+      <li>Zadanie 9</li>
+      <li>Zadanie 10</li>
+    </ul>
+  </main>
+
+  <aside class="rightTop" id="rightTop"></aside>
+
+  <script>
+    const petCard = document.getElementById("petCard");
+    const gridframe = document.getElementById("gridframe");
+    const controlsEl = document.getElementById("controls");
+    const rightTop = document.getElementById("rightTop");
+    const statsRow = document.getElementById("statsRow");
+
+    function placePet(){
+      if(!petCard || !gridframe || !controlsEl || !rightTop) return;
+      const isMobile = window.matchMedia("(max-width: 720px)").matches;
+
+      if(isMobile){
+        petCard.classList.add("docked");
+        if(statsRow) statsRow.classList.add("dockedStats");
+
+        const mobileViewEl = document.getElementById("mobileView");
+
+        if(statsRow && statsRow.parentElement !== gridframe){
+          gridframe.insertBefore(statsRow, controlsEl);
+        }
+
+        if(petCard.parentElement !== gridframe){
+          if(mobileViewEl) {
+            gridframe.insertBefore(petCard, mobileViewEl);
+          } else {
+            gridframe.insertBefore(petCard, controlsEl.nextSibling);
+          }
+        }
+      } else {
+        petCard.classList.remove("docked");
+        if(statsRow) statsRow.classList.remove("dockedStats");
+
+        if(statsRow) rightTop.appendChild(statsRow);
+        rightTop.appendChild(petCard);
+      }
+    }
+
+    placePet();
+    window.addEventListener("resize", placePet);
+  </script>
+</body>
+</html>
